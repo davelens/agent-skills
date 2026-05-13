@@ -9,7 +9,7 @@ description: >-
 
 # Maintaining the Project Wiki
 
-`documents/wiki/` is the source of truth for *how things work* (models,
+`docs/wiki/` is the source of truth for *how things work* (models,
 schemas, workflows, business rules, intent). `MEMORY.md` holds project-wide
 conventions; the wiki holds everything else.
 
@@ -32,7 +32,7 @@ test-only changes, formatting, or work already fully covered.
 ## Workflow
 
 1. Review what the task changed (you already have this from context).
-2. Read `documents/wiki/index.md` for current structure.
+2. Read `docs/wiki/index.md` for current structure.
 3. For each affected area: entry exists? Needs updating? Or would a new
    entry meaningfully help a future agent?
 4. Propose to the user in 2-3 sentences; if nothing qualifies, stop.
@@ -51,7 +51,7 @@ test-only changes, formatting, or work already fully covered.
 
 ## Structure
 
-`documents/wiki/` is a tree rooted at `index.md`. Each subdirectory is a
+`docs/wiki/` is a tree rooted at `index.md`. Each subdirectory is a
 stable namespace with its own `index.md` listing direct children only.
 Sub-namespaces are allowed (e.g. `backend/admins/roles.md`).
 
