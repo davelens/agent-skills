@@ -4,19 +4,19 @@ Centralized manifest and authoring space for the agent skills I use across
 projects — markdown-based instructions an LLM loads on-demand to handle
 specific tasks.
 
-Everything installs to `~/.config/agents/skills` (XDG-respecting) and is
-exposed to any client that reads from there, including Claude Code (via a
-symlink) and opencode.
+Everything installs to `~/.config/agents/skills` (XDG-respecting). Each
+agent reads from its own symlinked view under that directory, so installed
+skills stay centralized while visibility stays agent-specific.
 
 ## Layout
 
-| Path         | Purpose                                                |
-|--------------|--------------------------------------------------------|
-| `setup.sh`   | Bootstrap: installs and links everything.              |
-| `skills.txt` | Third-party skills manifest (`owner/repo@skill-name`). |
-| `personal/`  | My own skills, symlinked into the central dir.         |
-| `bin/`       | `list` / `update` / `reset` helpers.                   |
-| `AGENTS.md`  | Agent-level conventions (memory + wiki).               |
+| Path                  | Purpose                                                         |
+|-----------------------|-----------------------------------------------------------------|
+| `setup.sh`            | Bootstrap: installs and links everything.                       |
+| `skills.<agent>.txt`  | Per-agent skills manifests for `pi`, `claude`, and `opencode`.  |
+| `personal/`           | My own skills, symlinked into the central dir.                  |
+| `bin/`                | `list` / `update` / `reset` helpers.                            |
+| `AGENTS.md`           | Agent-level conventions (memory + wiki).                        |
 
 ## Requirements
 
@@ -34,15 +34,24 @@ cd agent-skills
 
 The script:
 
-1. Installs every entry from `skills.txt` via `npx skills add -g` into
-   `~/.config/agents/skills`. The lockfile lands under
+1. Installs every third-party entry from `skills.pi.txt`,
+   `skills.claude.txt`, and `skills.opencode.txt` via `npx skills add -g`
+   into `~/.config/agents/skills`. The lockfile lands under
    `~/.local/state/skills/`.
-2. Symlinks each `personal/<name>/` directory into the same target so
+2. Symlinks each `personal/<name>/` directory into the central target so
    edits to `SKILL.md` files take effect immediately.
-3. Symlinks `bin/` into the dotfiles utilities directory so
+3. Creates per-agent skill views at `~/.config/agents/skills/pi`,
+   `~/.config/agents/skills/claude`, and
+   `~/.config/agents/skills/opencode`, containing symlinks to only the
+   skills listed in each agent's manifest.
+4. Symlinks `bin/` into the dotfiles utilities directory so
    `u skills <cmd>` resolves.
-4. If Claude Code is installed, symlinks its skills directory at
-   `~/.config/claude/skills` to the central one.
+5. If Claude Code is installed, symlinks its skills directory at
+   `~/.config/claude/skills` to `~/.config/agents/skills/claude`.
+
+Manifest entries are either third-party install refs such as
+`owner/repo@skill-name`, or personal skill refs prefixed with `personal/`,
+such as `personal/project-memory`.
 
 ## Daily use
 

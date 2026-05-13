@@ -1,0 +1,11 @@
+anthropics/skills@frontend-design
+github/awesome-copilot@arch-linux-triage
+github/awesome-copilot@git-commit
+github/awesome-copilot@web-coder
+juliusbrussee/caveman@caveman
+vercel-labs/skills@find-skills
+wshobson/agents@tailwind-design-system
+personal/dev-project-wiki
+personal/project-conventions
+personal/project-memory
+personal/searching-activecollab-history
