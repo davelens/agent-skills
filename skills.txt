@@ -1,5 +1,6 @@
 anthropics/skills@frontend-design
 github/awesome-copilot@arch-linux-triage
+github/awesome-copilot@git-commit
 github/awesome-copilot@web-coder
 juliusbrussee/caveman@caveman
 obra/superpowers@brainstorming
