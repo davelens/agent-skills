@@ -9,104 +9,104 @@ description: >-
 
 # Maintaining the Project Wiki
 
-Keep `documents/wiki/` current as a side effect of development work, so agents
-can read one focused document instead of exploring dozens of files.
+`documents/wiki/` is the source of truth for *how things work* (models,
+schemas, workflows, business rules, intent). `MEMORY.md` holds project-wide
+conventions; the wiki holds everything else.
 
 ## When to trigger
 
-**After completing a task that changed functionality:**
+**At task start (read-only):** when a task touches a feature, model, or
+integration, check for a matching entry. Treat it as authoritative context;
+flag missing or stale entries.
+
+**After a task changed functionality:**
 - New feature, model, role, or integration
-- Refactored system or renamed/restructured domain concepts
-- Changed how an existing feature works (new options, new workflow steps)
+- Refactor, rename, or restructure of domain concepts
+- Changed behavior of an existing feature
+- Roadmap-worthy milestone (append to current year's roadmap)
+- Deprecation or removal (mark superseded or delete + unlink)
 
-**Do NOT trigger after:**
-- Bug fixes, typo corrections, config changes
-- Dependency bumps, test-only changes
-- Purely cosmetic or formatting changes
-- Work that only touched files already fully covered by existing wiki entries
-
-## Scope discipline
-
-This is not a documentation sprint. You are capturing knowledge you already
-have from the task you just completed.
-
-- **Only document what you touched.** Do not audit the entire wiki.
-- **Do not explore code beyond your current context.** The wiki entry should
-  use knowledge already in your session from the completed task. If you need
-  to read 10+ new files to write an entry, skip it.
-- **A missing entry is better than a shallow one.** If you lack sufficient
-  context to write something an agent would actually use, say so and stop.
-- **Write for an agent audience.** Schema, relationships, scopes, consumption
-  points, extension steps. No prose filler, no restating what code does
-  line-by-line.
-- **Target: one entry should replace 10+ file reads** and be readable in
-  under 2 minutes.
+**Do NOT trigger** for bug fixes, typos, config changes, dependency bumps,
+test-only changes, formatting, or work already fully covered.
 
 ## Workflow
 
-1. **Review what you just completed.** What models, features, or systems were
-   involved? You already know this from the task.
-2. **Read `documents/wiki/index.md`** to see the existing wiki structure.
-3. **Check for gaps.** For each affected area: does a wiki entry exist? If
-   yes, does it need updating based on your changes? If no, would a new entry
-   meaningfully help a future agent?
-4. **Propose to the user.** State what you want to add or update and what it
-   would cover. Keep the proposal to 2-3 sentences. If nothing qualifies,
-   say so and stop.
-5. **Wait for user approval.** Do not write until confirmed.
-6. **Write or update the entry** following the conventions below. Update
-   parent index files as needed.
+1. Review what the task changed (you already have this from context).
+2. Read `documents/wiki/index.md` for current structure.
+3. For each affected area: entry exists? Needs updating? Or would a new
+   entry meaningfully help a future agent?
+4. Propose to the user in 2-3 sentences; if nothing qualifies, stop.
+5. Wait for approval, then write or update the entry and its parent
+   `index.md`.
 
-## Wiki conventions
+## Scope discipline
 
-Wiki lives at `documents/wiki/`. Structure mirrors the application namespaces.
+- **Only document what you touched.** Do not audit the wiki.
+- **Use context already in your session.** If writing requires reading 10+
+  new files, skip it.
+- **A missing entry beats a shallow one.** Skip rather than stub.
+- **Never invent paths, columns, or behavior.** Reference only what's
+  verifiable in the codebase.
+- **Target:** under 2 minutes to read, replaces 10+ file reads.
 
-- Every directory has an `index.md` linking to its children.
-- Every page starts with a back-link: `[Back to Parent](./index.md)`.
-- The root `index.md` has a flat table of contents with nested links.
-- When adding a new page, update its parent `index.md` and the root
-  `index.md`.
+## Structure
 
-Directory structure example:
-```
-documents/wiki/
-  index.md
-  backend/
-    index.md
-    admins/
-      index.md
-      roles.md
-  frontend/
-    index.md
-  third-party-services/
-    index.md
-    dropbox.md
-```
+`documents/wiki/` is a tree rooted at `index.md`. Each subdirectory is a
+stable namespace with its own `index.md` listing direct children only.
+Sub-namespaces are allowed (e.g. `backend/admins/roles.md`).
 
-## What a good wiki entry contains
+Recommended top-level namespaces (create only those that apply):
 
-- Database schema (table, columns, types) when models are involved
-- Model relationships and association names
-- Key methods, scopes, and class methods with their purpose
-- Where the functionality is consumed (file paths + brief role)
-- How to extend or modify it (step-by-step recipe)
-- Business rules and constraints not obvious from code alone
+- `preface.md` — brief project context/history
+- `roadmap/` — one file per calendar year + `index.md` (reverse-chrono)
+- `backend/` — server-side concerns
+- `frontend/` — client-facing flows and components
+- `api/` — public/internal interfaces, contracts, versioning
+- `models/` — domain models, schemas, associations, invariants
+- `third-party-services/` — one file per external integration
 
-## What a wiki entry must NOT contain
+Add others (`infrastructure/`, `security/`, etc.) when a coherent cluster
+warrants it.
 
-- Prose explanations an agent can infer from reading code
-- Information already in MEMORY.md (project-wide conventions, coding standards)
-- Speculative or aspirational documentation ("we might want to...")
-- Multi-paragraph introductions or background context
+## Entry shape
+
+1. **Breadcrumb** — first line: `[Back to <parent>](./index.md)`.
+2. **Title** — single `#` heading naming the feature/model/system.
+3. **Intent** — 1–3 sentences on what it is and why. Business meaning
+   first, implementation second.
+4. **Primary code reference** — file path on its own line if the entry
+   centers on a single file.
+5. **Body** — `##` sections such as *Database schema*, *Models and
+   relationships*, *Workflow*, *Where it is used*, *Edge cases*,
+   *Adding a new X*. Include only what genuinely applies.
+
+Use tables for columns/statuses/enums; fenced code blocks for short
+examples. Link to source instead of mirroring it.
+
+**Include:** schema, relationships, scopes/methods with purpose,
+consumption points, extension recipes, non-obvious business rules.
+
+**Exclude:** prose an agent can infer from code, project-wide conventions
+(those live in `MEMORY.md`), aspirational notes, multi-paragraph intros.
+
+## Linking
+
+- **Relative markdown links** only — no absolute paths or URLs. Cross-
+  namespace: `../frontend/wizard.md`.
+- **First mention of any entity with its own entry must link to it.**
+  Subsequent mentions in the same section may go unlinked.
+- **Code paths** are inline backticks (`app/models/order.rb`), not markdown
+  links.
+- **Indexes list direct children only.**
+- **Every page opens with a back-link** to its parent index.
 
 ## Red flags
-
-If you catch yourself thinking any of these, stop:
 
 | Thought | Action |
 |---------|--------|
 | "Let me also document X while I'm here" | Only document what you touched. |
 | "I should explore that model more thoroughly" | Use context you already have. |
-| "This entry needs a full architecture overview" | Write the minimum useful entry. |
+| "This needs a full architecture overview" | Write the minimum useful entry. |
 | "Let me read 15 files to write a complete picture" | If it needs that much research, skip it. |
-| "I'll just add a quick stub for now" | Stubs waste tokens on read. Skip or write properly. |
+| "I'll add a quick stub for now" | Stubs waste tokens on read. Skip or write properly. |
+| "I'll invent a plausible file path" | Never. Only reference verifiable paths. |
