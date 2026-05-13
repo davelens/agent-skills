@@ -9,3 +9,4 @@ personal/dev-project-wiki
 personal/project-conventions
 personal/project-memory
 personal/searching-activecollab-history
+personal/superpowers-lite
