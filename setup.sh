@@ -9,19 +9,14 @@ CLAUDE_CONFIG_DIR="${CLAUDE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/claude
 SKILLS_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 SKILLS_STATE_DIR="$SKILLS_STATE_HOME/skills"
 
-# ── Check that node is installed via mise ───────────────────────
-if ! command -v mise &>/dev/null; then
-  echo "[$ME] ERROR: mise not found. Install mise first." >&2
-  exit 1
-fi
-
-if ! mise which node &>/dev/null; then
-  echo "[$ME] ERROR: node is not installed via mise. Run 'mise use -g node@lts' first." >&2
-  exit 1
-fi
-
+# ── Check that npx and jq are available ─────────────────────────
 if ! command -v npx &>/dev/null; then
-  echo "[$ME] ERROR: npx not found on PATH (expected via mise-installed node)." >&2
+  echo "[$ME] ERROR: npx not found on PATH. Install Node.js (e.g. via mise, nvm, or your distro's package manager)." >&2
+  exit 1
+fi
+
+if ! command -v jq &>/dev/null; then
+  echo "[$ME] ERROR: jq not found on PATH. Install jq via your distro's package manager." >&2
   exit 1
 fi
 
@@ -30,11 +25,22 @@ echo "[$ME] Installing skills from skills.txt"
 mkdir -p "$AGENT_SKILLS_DIR" "$SKILLS_STATE_DIR"
 cd "$SCRIPT_DIR"
 
+SKILLS_LOCK="$SKILLS_STATE_DIR/.skill-lock.json"
+
 TMP_SKILLS_HOME="$(mktemp -d)"
 cleanup_tmp_skills_home() {
   rm -rf "$TMP_SKILLS_HOME"
 }
 trap cleanup_tmp_skills_home EXIT
+
+skill_in_lockfile() {
+  # $1 = full manifest line, e.g. "anthropics/skills@frontend-design"
+  local name="${1##*@}"
+  local source="${1%@*}"
+  [[ -f "$SKILLS_LOCK" ]] || return 1
+  jq -e --arg n "$name" --arg s "$source" \
+    '.skills[$n].source == $s' "$SKILLS_LOCK" >/dev/null 2>&1
+}
 
 while IFS= read -r line || [[ -n "$line" ]]; do
   # Skip empty lines and comments
@@ -42,6 +48,13 @@ while IFS= read -r line || [[ -n "$line" ]]; do
 
   # Parse skill name: 'owner/repo@skill-name' -> 'skill-name'
   skill_name="${line##*@}"
+  target="$AGENT_SKILLS_DIR/$skill_name"
+
+  # Fast path: target installed and lockfile already knows about it.
+  if [[ -e "$target" || -L "$target" ]] && skill_in_lockfile "$line"; then
+    echo "[$ME] - $skill_name already installed, skipping."
+    continue
+  fi
 
   echo "[$ME] - $line"
   if ! HOME="$TMP_SKILLS_HOME" XDG_STATE_HOME="$SKILLS_STATE_HOME" npx skills add "$line" -g -a universal --yes >/dev/null 2>&1 </dev/null; then
@@ -50,7 +63,6 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   fi
 
   installed_skill_dir="$TMP_SKILLS_HOME/.agents/skills/$skill_name"
-  target="$AGENT_SKILLS_DIR/$skill_name"
   if [[ -e "$target" || -L "$target" ]]; then
     echo "[$ME] - $skill_name already installed, skipping move."
   elif [[ -d "$installed_skill_dir" ]]; then
