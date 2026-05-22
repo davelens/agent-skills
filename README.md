@@ -77,6 +77,6 @@ Conventions for writing skill files come from the upstream
 ## Agent conventions
 
 `AGENTS.md` defines what belongs in `MEMORY.md` (durable, project-wide
-context) versus a project's wiki under `documents/wiki/` (feature-specific
+context) versus a project's wiki under `docs/wiki/` (feature-specific
 docs). It is read at the start of any agent task and points at the
 `dev-project-wiki` skill for wiki maintenance details.
