@@ -1,6 +1,6 @@
 ---
 name: project-conventions
-description: Use when working in a project with shared formatting rules, operational assumptions, or superpowers file-placement conventions
+description: Use when working in a project with shared formatting rules, operational assumptions, or memory 
 ---
 
 # Development Conventions
@@ -9,7 +9,6 @@ description: Use when working in a project with shared formatting rules, operati
 
 - Project defines shared formatting rules
 - Project defines repo-wide operational assumptions
-- Project uses superpowers document-location conventions
 
 ## Quick Reference
 
@@ -20,10 +19,7 @@ description: Use when working in a project with shared formatting rules, operati
 - When commits are part of the workflow, make proper git commits per finished todo item.
 - Never `git push` without asking.
 - Do not write to `.claude` or `.opencode`.
-- Superpowers paths:
-  - brainstorms: `docs/superpowers/brainstorms`
-  - specs: `docs/superpowers/specs`
-  - plans: `docs/superpowers/plans`
+- Superpowers plans go in `docs/adr`
 
 ## Common Mistakes
 

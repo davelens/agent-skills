@@ -5,8 +5,8 @@ github/awesome-copilot@web-coder
 juliusbrussee/caveman@caveman
 vercel-labs/skills@find-skills
 wshobson/agents@tailwind-design-system
-personal/dev-project-wiki
 personal/project-conventions
 personal/project-memory
+personal/project-wiki
 personal/searching-activecollab-history
 personal/superpowers-lite
