@@ -1,5 +1,5 @@
 ---
-name: dev-project-wiki
+name: project-wiki
 description: >-
   Use after completing a significant task — new features, models, roles,
   refactors, or integrations. Checks the project wiki for gaps or stale
