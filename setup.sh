@@ -169,7 +169,10 @@ sync_agent_skills() {
   for entry in "$profile_dir"/*; do
     [[ -e "$entry" || -L "$entry" ]] || continue
     skill_name="$(basename "$entry")"
-    if [[ -L "$entry" && -z "${wanted_skills[$skill_name]:-}" ]]; then
+    if [[ -L "$entry" && ! -e "$entry" ]]; then
+      unlink "$entry"
+      echo "[$ME] - Removed dead symlink $agent/$skill_name"
+    elif [[ -L "$entry" && -z "${wanted_skills[$skill_name]:-}" ]]; then
       unlink "$entry"
       echo "[$ME] - Removed stale $agent/$skill_name"
     fi
@@ -236,6 +239,19 @@ if [[ -d "$CLAUDE_CONFIG_DIR" || -L "$CLAUDE_CONFIG_DIR" ]]; then
 else
   echo "[$ME] Claude config directory not found at $CLAUDE_CONFIG_DIR, skipping."
 fi
+
+# ── Sweep dead symlinks in skills root ──────────────────────────
+echo "[$ME]"
+echo "[$ME] Sweeping dead symlinks in $AGENT_SKILLS_DIR"
+
+for entry in "$AGENT_SKILLS_DIR"/*; do
+  [[ -L "$entry" ]] || continue
+  if [[ ! -e "$entry" ]]; then
+    skill_name="$(basename "$entry")"
+    unlink "$entry"
+    echo "[$ME] - Removed dead symlink $skill_name"
+  fi
+done
 
 echo "[$ME]"
 echo "[$ME] Done."
