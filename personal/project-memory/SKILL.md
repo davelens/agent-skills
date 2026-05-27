@@ -1,51 +1,36 @@
 ---
 name: project-memory
-description: Use when working in a project that stores durable, project-wide context in `./MEMORY.md`
+description: Use when project stores durable context in `./docs/memory/`, or when user asks to remember/save/note a project-wide fact
 ---
 
 # Durable Memory
 
-## When to Use
+## Layout
+`./docs/memory/index.md` + linked subsections (`<urlized-name>.md`).
+Read `index.md` at task start; load subsections only when relevant.
+Create `index.md` if missing.
 
-- Project stores durable context in `./MEMORY.md`
-- Need project-wide constraints or conventions from memory
-- Need to decide whether new information belongs in memory or docs
+## Belongs in memory
+High-signal, long-lived, project-wide:
+- hard constraints, invariants, platforms, compliance
+- naming/versioning conventions
+- operational assumptions
+- repeated user/team preferences
+- architecture decisions
 
-Do not use for feature-specific documentation or temporary working notes.
+## Doesn't belong
+- feature-specific behavior, schemas → `./docs/wiki/`
+- system walkthroughs → wiki
+- debugging notes, logs, TODOs, speculation
+- secrets, credentials
 
-## Quick Reference
+## Rule of thumb
+Applies everywhere → memory. Explains specific feature → wiki.
 
-- Read `./MEMORY.md`.
-- If repo docs or `./AGENTS.md` specify a different memory file, use that instead.
-- If missing, create it with project overview and core conventions.
-- Add only durable, project-wide facts.
-- Put feature and subsystem behavior in docs or wiki.
+## Adding memory
+- Update most-specific existing subsection first.
+- New file only if no fit; link from `index.md`.
+- Concise, factual. Supersede stale notes — never append contradictions.
 
-## What Belongs In Memory
-
-- Architecture decisions
-- Hard constraints and invariants
-- Naming and versioning conventions
-- Project-wide operational assumptions
-- Repeated user or team preferences
-
-Do not store:
-- Debugging notes
-- Logs
-- TODOs
-- Speculation
-- Secrets
-
-## Memory Rules
-
-- Keep entries concise and factual.
-- Use stable headings.
-- Update or supersede stale notes.
-
-## Common Mistakes
-
-- Putting feature-specific behavior in memory
-- Recording temporary context in memory
-- Ignoring repo-specific memory-location overrides
-- Letting stale rules pile up without superseding them
-- Treating memory as optional in a project that relies on it
+## Safety
+No overwrite/revert/remove user changes unless asked.
