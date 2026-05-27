@@ -1,28 +1,20 @@
 ---
 name: project-conventions
-description: List of conventions and assumptions to make for any project
+description: Global defaults for any project. Load at session start. Project's `AGENTS.md`, `CLAUDE.md`, or `./docs/memory/` overrides these.
 ---
 
-# Project conventions and assumptions
+# Project Conventions
 
-## Instructions
-- Use skill at session start
-- Respect conventions defined in AGENTS.md or CLAUDE.md that contradict any of the ones defined below
+Defaults. Project-specific conventions (coding standards, branching, etc.)
+live in `./docs/memory/` and override these.
 
-## Quick Reference
-- Blank lines must be truly empty.
-- Use spaces, not tabs, unless project guidance says otherwise.
-- Comments use normal sentence case, not all-caps.
+## Rules
+
+- Blank lines truly empty (no trailing whitespace).
+- Spaces, not tabs.
+- Comments in sentence case, not all-caps.
 - Bash section headers may use simple decorative borders.
-- When commits are part of the workflow, make proper git commits per finished todo item.
+- Commit per finished todo when commits are workflow.
 - Never `git push` without asking.
-- Do not write to `.claude` or `.opencode`.
-- Superpowers plans go in `docs/adr`
-
-## Common Mistakes
-- Overriding defined conventions in AGENTS.md
-- Writing files in tool-specific hidden directories
-- Using tabs where project conventions require spaces
-- Writing all-caps comments
-- Ignoring project document-location conventions
-- `git push` without asking.
+- Never write to `.claude/` or `.opencode/`.
+- Superpowers plans → `docs/adr/`.
