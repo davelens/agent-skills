@@ -1,112 +1,75 @@
 ---
 name: project-wiki
-description: >-
-  Use after completing a significant task — new features, models, roles,
-  refactors, or integrations. Checks the project wiki for gaps or stale
-  entries related to the work done, proposes targeted additions or updates,
-  and writes only after user approval.
+description: Use after a task changes a feature, model, role, integration, or domain concept. Checks `docs/wiki/` for gaps or stale entries; proposes targeted updates and writes only after user approval.
 ---
 
-# Maintaining the Project Wiki
+# Project Wiki
 
-`docs/wiki/` is the source of truth for *how things work* (models,
-schemas, workflows, business rules, intent). `MEMORY.md` holds project-wide
-conventions; the wiki holds everything else.
+`docs/wiki/` = source of truth for *how things work* (models, schemas,
+workflows, business rules, intent). Project-wide conventions live in
+`docs/memory/`; everything else lives here.
 
 ## When to trigger
 
-**At task start (read-only):** when a task touches a feature, model, or
-integration, check for a matching entry. Treat it as authoritative context;
-flag missing or stale entries.
+**Task start (read-only):** if task touches a feature/model/integration,
+read matching entry. Flag missing/stale.
 
-**After a task changed functionality:**
-- New feature, model, role, or integration
-- Refactor, rename, or restructure of domain concepts
-- Changed behavior of an existing feature
-- Roadmap-worthy milestone (append to current year's roadmap)
-- Deprecation or removal (mark superseded or delete + unlink)
+**After functional change:** new feature/model/role/integration, refactor
+or rename of domain concepts, changed behavior, roadmap milestone (append
+to current year), deprecation/removal.
 
-**Do NOT trigger** for bug fixes, typos, config changes, dependency bumps,
-test-only changes, formatting, or work already fully covered.
+**Skip:** bug fixes, typos, config, dep bumps, tests-only, formatting,
+work already covered.
 
 ## Workflow
 
-1. Review what the task changed (you already have this from context).
-2. Read `docs/wiki/index.md` for current structure.
-3. For each affected area: entry exists? Needs updating? Or would a new
-   entry meaningfully help a future agent?
-4. Propose to the user in 2-3 sentences; if nothing qualifies, stop.
-5. Wait for approval, then write or update the entry and its parent
-   `index.md`.
+1. Read `docs/wiki/index.md`.
+2. For each affected area: exists? stale? would new entry help future agent?
+3. Propose to user in 2-3 sentences. Nothing qualifies → stop.
+4. On approval: write/update entry + parent `index.md`.
 
-## Scope discipline
+## Scope rules
 
-- **Only document what you touched.** Do not audit the wiki.
-- **Use context already in your session.** If writing requires reading 10+
-  new files, skip it.
-- **A missing entry beats a shallow one.** Skip rather than stub.
-- **Never invent paths, columns, or behavior.** Reference only what's
-  verifiable in the codebase.
-- **Target:** under 2 minutes to read, replaces 10+ file reads.
+- Only document what you touched.
+- Use context already in session. Needs 10+ new file reads → skip.
+- Missing entry beats shallow stub.
+- Never invent paths/columns/behavior. Verifiable only.
+- Target: <2min read, replaces 10+ file reads.
 
 ## Structure
 
-`docs/wiki/` is a tree rooted at `index.md`. Each subdirectory is a
-stable namespace with its own `index.md` listing direct children only.
-Sub-namespaces are allowed (e.g. `backend/admins/roles.md`).
+Tree rooted at `index.md`. Each subdir = stable namespace with own
+`index.md` listing direct children only. Sub-namespaces allowed
+(`backend/admins/roles.md`).
 
-Recommended top-level namespaces (create only those that apply):
-
-- `preface.md` — brief project context/history
-- `roadmap/` — one file per calendar year + `index.md` (reverse-chrono)
-- `backend/` — server-side concerns
-- `frontend/` — client-facing flows and components
-- `api/` — public/internal interfaces, contracts, versioning
-- `models/` — domain models, schemas, associations, invariants
-- `third-party-services/` — one file per external integration
-
-Add others (`infrastructure/`, `security/`, etc.) when a coherent cluster
-warrants it.
+Top-level (create only those that apply): `preface.md`, `roadmap/` (one
+file per year, reverse-chrono), `backend/`, `frontend/`, `api/`,
+`models/`, `third-party-services/`. Others (`infrastructure/`,
+`security/`) when cluster warrants.
 
 ## Entry shape
 
-1. **Breadcrumb** — first line: `[Back to <parent>](./index.md)`.
-2. **Title** — single `#` heading naming the feature/model/system.
-3. **Intent** — 1–3 sentences on what it is and why. Business meaning
-   first, implementation second.
-4. **Primary code reference** — file path on its own line if the entry
-   centers on a single file.
-5. **Body** — `##` sections such as *Database schema*, *Models and
-   relationships*, *Workflow*, *Where it is used*, *Edge cases*,
-   *Adding a new X*. Include only what genuinely applies.
+1. Breadcrumb: `[Back to <parent>](./index.md)`
+2. Title: single `#` naming feature/model/system
+3. Intent: 1–3 sentences. Business meaning first, implementation second.
+4. Primary code reference: file path on own line if entry centers on one file.
+5. Body: `##` sections — *Database schema*, *Models and relationships*,
+   *Workflow*, *Where it is used*, *Edge cases*, *Adding a new X*. Only
+   what applies.
 
-Use tables for columns/statuses/enums; fenced code blocks for short
-examples. Link to source instead of mirroring it.
+Tables for columns/enums. Fenced code for short examples. Link to source,
+don't mirror.
 
 **Include:** schema, relationships, scopes/methods with purpose,
 consumption points, extension recipes, non-obvious business rules.
 
-**Exclude:** prose an agent can infer from code, project-wide conventions
-(those live in `MEMORY.md`), aspirational notes, multi-paragraph intros.
+**Exclude:** prose inferable from code, project-wide conventions
+(→ `docs/memory/`), aspirations, long intros.
 
 ## Linking
 
-- **Relative markdown links** only — no absolute paths or URLs. Cross-
-  namespace: `../frontend/wizard.md`.
-- **First mention of any entity with its own entry must link to it.**
-  Subsequent mentions in the same section may go unlinked.
-- **Code paths** are inline backticks (`app/models/order.rb`), not markdown
-  links.
-- **Indexes list direct children only.**
-- **Every page opens with a back-link** to its parent index.
-
-## Red flags
-
-| Thought | Action |
-|---------|--------|
-| "Let me also document X while I'm here" | Only document what you touched. |
-| "I should explore that model more thoroughly" | Use context you already have. |
-| "This needs a full architecture overview" | Write the minimum useful entry. |
-| "Let me read 15 files to write a complete picture" | If it needs that much research, skip it. |
-| "I'll add a quick stub for now" | Stubs waste tokens on read. Skip or write properly. |
-| "I'll invent a plausible file path" | Never. Only reference verifiable paths. |
+- Relative markdown links only. Cross-namespace: `../frontend/wizard.md`.
+- First mention of entity with own entry → link. Later mentions in same section may go unlinked.
+- Code paths in inline backticks, not links.
+- Indexes list direct children only.
+- Every page opens with back-link to parent index.
