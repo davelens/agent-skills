@@ -42,10 +42,16 @@ Tree rooted at `index.md`. Each subdir = stable namespace with own
 `index.md` listing direct children only. Sub-namespaces allowed
 (`backend/admins/roles.md`).
 
-Top-level (create only those that apply): `preface.md`, `roadmap/` (one
-file per year, reverse-chrono), `backend/`, `frontend/`, `api/`,
-`models/`, `third-party-services/`. Others (`infrastructure/`,
-`security/`) when cluster warrants.
+Top-level (create only those that apply):
+- `preface.md` — brief project context/history
+- `roadmap/` — one file per calendar year + `index.md` (reverse-chrono)
+- `backend/` — server-side concerns
+- `frontend/` — client flows and components
+- `api/` — public/internal interfaces, contracts, versioning
+- `models/` — domain models, schemas, associations, invariants
+- `third-party-services/` — one file per external integration
+
+Add others (`infrastructure/`, `security/`) when cluster warrants.
 
 ## Entry shape
 
