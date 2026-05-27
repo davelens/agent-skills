@@ -19,10 +19,12 @@ High-signal, long-lived, project-wide:
 - architecture decisions
 
 ## Doesn't belong
-- feature-specific behavior, schemas → `./docs/wiki/`
+- feature-specific behavior, schemas → wiki
 - system walkthroughs → wiki
 - debugging notes, logs, TODOs, speculation
 - secrets, credentials
+
+Wiki-territory fact? Load `project-wiki` skill instead.
 
 ## Rule of thumb
 Applies everywhere → memory. Explains specific feature → wiki.
