@@ -18,3 +18,12 @@ live in `./docs/memory/` and override these.
 - Never `git push` without asking.
 - Never write to `.claude/` or `.opencode/`.
 - Superpowers plans → `docs/adr/`.
+- Before installing packages or running install scripts:
+  - Verify point of origin
+  - Check official registry page
+  - Check repository ownership
+  - Review maintainer history
+  - Check package name similarity/typosquatting risk
+  - Check recent suspicious releases
+  - Verify package integrity/signature/checksum when available
+  - Ask user if provenance is unclear
