@@ -18,6 +18,7 @@ mattpocock/skills@zoom-out
 vercel-labs/skills@find-skills
 wshobson/agents@tailwind-design-system
 personal/ketch
+personal/pi-mcp-adapter-config
 personal/project-conventions
 personal/project-memory
 personal/project-wiki
