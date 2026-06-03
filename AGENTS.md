@@ -29,5 +29,5 @@ Supersede stale notes rather than accumulating them.
   - Single quotes for strings unless double quotes necessary
 
   ```
-- Load `dev-project-wiki` skill if `./docs/wiki` exists
+- Load `project-wiki` skill if `./docs/wiki` exists
 - Load `git-commit` skill
