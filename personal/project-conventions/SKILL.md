@@ -10,6 +10,7 @@ live in `./docs/memory/` and override these.
 
 ## Rules
 
+- Always answer in english
 - Always read these memory files when present:
   - `./docs/memory/architecture.md` 
   - `./docs/memory/coding-standards.md`
@@ -21,6 +22,7 @@ live in `./docs/memory/` and override these.
 - Never `git push` without asking.
 - Never write to `.claude/` or `.opencode/`.
 - Superpowers plans → `docs/adr/`.
+- do not overwrite, revert, or remove user changes unless explicitly requested.
 - Before installing packages or running install scripts:
   - Verify point of origin
   - Check official registry page
