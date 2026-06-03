@@ -10,6 +10,9 @@ live in `./docs/memory/` and override these.
 
 ## Rules
 
+- Always read these memory files when present:
+  - `./docs/memory/architecture.md` 
+  - `./docs/memory/coding-standards.md`
 - Blank lines truly empty (no trailing whitespace).
 - Spaces, not tabs.
 - Comments in sentence case, not all-caps.
