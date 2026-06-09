@@ -1,9 +1,9 @@
 ---
-name: git-archaeology
+name: search-git-history
 description: Recover history from a git repo or GitHub project — when a file/symbol was added or removed, who changed what, why a PR landed. Use when the user asks "when was X removed/added", "who changed Y", "history of Z", or any commit-log / blame / PR forensics question. Covers both local `git` and GitHub via `gh` CLI.
 ---
 
-# git-archaeology
+# search-git-history
 
 History forensics on git repos and GitHub projects. Current code search (grep, ripgrep, `ketch code`) shows what *is*. This skill shows what *was* and *why it changed*.
 
