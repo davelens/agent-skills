@@ -5,6 +5,7 @@ ME=${BASH_SOURCE[0]/\.\//}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AGENTS=(pi claude opencode)
 AGENT_SKILLS_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/agents/skills"
+LEGACY_AGENT_SKILLS_DIR="$HOME/.agents/skills"
 CLAUDE_CONFIG_DIR="${CLAUDE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/claude}"
 SKILLS_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 SKILLS_STATE_DIR="$SKILLS_STATE_HOME/skills"
@@ -94,6 +95,8 @@ install_skill_ref() {
 }
 
 declare -A seen_skill_refs=()
+declare -A wanted_skill_names=()
+
 for agent in "${AGENTS[@]}"; do
   manifest="$(manifest_path "$agent")"
   if [[ ! -f "$manifest" ]]; then
@@ -102,8 +105,11 @@ for agent in "${AGENTS[@]}"; do
   fi
 
   while IFS= read -r line || [[ -n "$line" ]]; do
-    # Skip empty lines, comments, and local skill names.
     [[ -z "$line" || "$line" == \#* ]] && continue
+
+    skill_name="$(skill_name_from_line "$line")"
+    wanted_skill_names[$skill_name]=1
+
     is_install_ref "$line" || continue
     [[ -n "${seen_skill_refs[$line]:-}" ]] && continue
     seen_skill_refs[$line]=1
@@ -124,6 +130,7 @@ if [[ -d "$PERSONAL_SKILLS_DIR" ]]; then
     [[ -d "$skill_dir" ]] || continue
     skill_dir="${skill_dir%/}"
     skill_name="$(basename "$skill_dir")"
+    wanted_skill_names[$skill_name]=1
     target="$AGENT_SKILLS_DIR/$skill_name"
     if [[ -L "$target" && -e "$target" ]]; then
       echo "[$ME] - $skill_name already symlinked, skipping."
@@ -137,6 +144,56 @@ if [[ -d "$PERSONAL_SKILLS_DIR" ]]; then
 else
   echo "[$ME] No personal skills directory found at $PERSONAL_SKILLS_DIR, skipping symlinks."
 fi
+
+# ── Remove skills no longer managed by manifests ────────────────
+prune_stale_managed_skills() {
+  echo "[$ME]"
+  echo "[$ME] Pruning stale managed skills"
+
+  if [[ -f "$SKILLS_LOCK" ]]; then
+    for entry in "$AGENT_SKILLS_DIR"/*; do
+      [[ -e "$entry" || -L "$entry" ]] || continue
+      skill_name="$(basename "$entry")"
+
+      for agent in "${AGENTS[@]}"; do
+        [[ "$skill_name" == "$agent" ]] && continue 2
+      done
+
+      [[ -n "${wanted_skill_names[$skill_name]:-}" ]] && continue
+
+      if jq -e --arg n "$skill_name" '.skills[$n] != null' "$SKILLS_LOCK" >/dev/null 2>&1; then
+        rm -rf "$entry"
+        echo "[$ME] - Removed stale managed skill $skill_name"
+      fi
+    done
+
+    wanted_json="$(printf '%s\n' "${!wanted_skill_names[@]}" | jq -R . | jq -s 'map(select(length > 0))')"
+    tmp_lock="$(mktemp)"
+    jq --argjson wanted "$wanted_json" \
+      '.skills |= with_entries(select(.key as $k | $wanted | index($k)))' \
+      "$SKILLS_LOCK" >"$tmp_lock"
+    mv "$tmp_lock" "$SKILLS_LOCK"
+  fi
+}
+
+sweep_legacy_agent_skills() {
+  [[ -d "$LEGACY_AGENT_SKILLS_DIR" ]] || return 0
+
+  echo "[$ME]"
+  echo "[$ME] Sweeping legacy skills in $LEGACY_AGENT_SKILLS_DIR"
+
+  for entry in "$LEGACY_AGENT_SKILLS_DIR"/*; do
+    [[ -e "$entry" || -L "$entry" ]] || continue
+    skill_name="$(basename "$entry")"
+    rm -rf "$entry"
+    echo "[$ME] - Removed legacy skill $skill_name"
+  done
+
+  rmdir "$LEGACY_AGENT_SKILLS_DIR" "$HOME/.agents" 2>/dev/null || true
+}
+
+prune_stale_managed_skills
+sweep_legacy_agent_skills
 
 # ── Create per-agent skill views ─────────────────────────────────
 echo "[$ME]"
