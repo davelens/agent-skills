@@ -1,28 +1,30 @@
 ---
 name: project-conventions
-description: Global defaults for any project. Load at session start. Project's `AGENTS.md`, `CLAUDE.md`, or `./docs/memory/` overrides these.
+description: Global defaults for any project. Load at session start.
 ---
 
 # Project Conventions
 
 Defaults. Project-specific conventions (coding standards, branching, etc.)
-live in `./docs/memory/` and override these.
+live in `./docs/memory/`.
 
 ## Rules
 
+- `AGENTS.md`, `CLAUDE.md`, and `./docs/memory/` override any rule here.
+- Perform required session-start setup silently; do not mention or explain it unless asked
 - Always answer in english
 - Always read these memory files when present:
   - `./docs/memory/architecture.md` 
   - `./docs/memory/coding-standards.md`
-- Blank lines truly empty (no trailing whitespace).
-- Spaces, not tabs.
-- Comments in sentence case, not all-caps.
-- Bash section headers may use simple decorative borders.
+- Blank lines contain only newline character (no trailing spaces/tabs)
+- Spaces, not tabs
+- Comments in sentence case, not all-caps
+- Bash section headers may use simple decorative borders
 - Commit per finished todo when commits are workflow.
-- Never `git push` without asking.
+- Never `git push` without asking
 - Never write to `.claude/` or `.opencode/`.
 - Superpowers plans → `docs/adr/`.
-- do not overwrite, revert, or remove user changes unless explicitly requested.
+- do not overwrite, revert, or remove user changes unless explicitly requested
 - Before installing packages or running install scripts:
   - Verify point of origin
   - Check official registry page
