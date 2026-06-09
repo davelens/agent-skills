@@ -11,8 +11,7 @@ mattpocock/skills@improve-codebase-architecture
 mattpocock/skills@prototype
 mattpocock/skills@setup-matt-pocock-skills
 mattpocock/skills@tdd
-mattpocock/skills@to-issues
-mattpocock/skills@to-prd
+mattpocock/skills@teach
 mattpocock/skills@write-a-skill
 mattpocock/skills@zoom-out
 vercel-labs/skills@find-skills
