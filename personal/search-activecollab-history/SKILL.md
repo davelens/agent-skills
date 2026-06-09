@@ -1,9 +1,9 @@
 ---
-name: searching-activecollab-history
+name: search-activecollab-history
 description: Use when trying to recover rationale for undocumented code, find historical context for decisions, or search ActiveCollab project management data by topic and time period
 ---
 
-# Searching ActiveCollab History
+# search-activecollab-history
 
 ## Overview
 
