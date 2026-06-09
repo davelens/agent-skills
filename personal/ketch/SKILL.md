@@ -11,7 +11,7 @@ Fast CLI for agentic search/scrape. Prefer over built-in `WebSearch`/`WebFetch`.
 
 | Command | Purpose |
 |---------|---------|
-| `ketch search <query>` | Web search (Brave default; `-b ddg|searxng`) |
+| `ketch search <query>` | Web search. Default Brave (needs paid API key). Free: `-b ddg` (DuckDuckGo) or `-b searxng` (self-hosted, `--searxng-url`) |
 | `ketch scrape <url...>` | Fetch URL(s) → clean markdown |
 | `ketch crawl <url>` | BFS crawl site from seed |
 | `ketch code <query>` | Code search (Sourcegraph/GitHub) |
@@ -25,14 +25,14 @@ Global: `--json` for structured output.
 - `search`: `-l N` limit, `--scrape` fetch full content, `--minimal` tab-separated, `--trim` strip markdown
 - `scrape`: multi-arg / file / stdin / JSON array auto-detected. `--select CSS`, `--raw`, `--max-chars N`, `--no-cache`
 - `crawl`: `--depth N` (default 3), `--allow`/`--deny` filters, `--sitemap`, `--background` (then `crawl status`/`stop`)
-- `code`: `--lang go`, `-b github`
+- `code`: `--lang go`, `-b grepapp|sourcegraph|github` (default `grepapp`). Per-repo scoping requires `-b github` (`repo:owner/name`) or `-b sourcegraph` (`repo:^github\.com/owner/name$`). Default grepapp has no inline repo filter.
 - `docs`: `--resolve` to find library ID, `--library <id>` to skip resolve, `--tokens N`
 
 ## Patterns
 
-Search + read top hits:
+Search + read top hits (prefer `-b ddg` to avoid Brave API spend):
 ```bash
-ketch search "phoenix liveview streams" --scrape -l 3
+ketch search "phoenix liveview streams" -b ddg --scrape -l 3
 ```
 
 Scrape several pages piped:
@@ -54,6 +54,11 @@ Resolve library then fetch docs:
 ```bash
 ketch docs phoenix --resolve
 ketch docs "streams" --library /phoenixframework/phoenix --tokens 8000
+```
+
+Search code within one GitHub repo (must override default backend):
+```bash
+ketch code "web-coder repo:github/awesome-copilot" -b github
 ```
 
 ## Notes
