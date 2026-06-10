@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ME=${BASH_SOURCE[0]/\.\//}
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
 AGENTS=(pi claude opencode)
 AGENT_SKILLS_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/agents/skills"
 LEGACY_AGENT_SKILLS_DIR="$HOME/.agents/skills"
@@ -12,17 +12,17 @@ SKILLS_STATE_DIR="$SKILLS_STATE_HOME/skills"
 
 # ── Check that npx and jq are available ─────────────────────────
 if ! command -v npx &>/dev/null; then
-  echo "[$ME] ERROR: npx not found on PATH. Install Node.js (e.g. via mise, nvm, or your distro's package manager)." >&2
+  echo "ERROR: npx not found on PATH. Install Node.js (e.g. via mise, nvm, or your distro's package manager)." >&2
   exit 1
 fi
 
 if ! command -v jq &>/dev/null; then
-  echo "[$ME] ERROR: jq not found on PATH. Install jq via your distro's package manager." >&2
+  echo "ERROR: jq not found on PATH. Install jq via your distro's package manager." >&2
   exit 1
 fi
 
 # ── Install skills from per-agent manifests ─────────────────────
-echo "[$ME] Installing skills from per-agent manifests"
+echo "Installing skills from per-agent manifests"
 mkdir -p "$AGENT_SKILLS_DIR" "$SKILLS_STATE_DIR"
 cd "$SCRIPT_DIR"
 
@@ -73,24 +73,24 @@ install_skill_ref() {
 
   # Fast path: target installed and lockfile already knows about it.
   if [[ -e "$target" || -L "$target" ]] && skill_in_lockfile "$line"; then
-    echo "[$ME] - $skill_name already installed, skipping."
+    echo "- $skill_name already installed, skipping."
     return 0
   fi
 
-  echo "[$ME] - $line"
+  echo "- $line"
   if ! HOME="$TMP_SKILLS_HOME" XDG_STATE_HOME="$SKILLS_STATE_HOME" npx skills add "$line" -g -a universal --yes >/dev/null 2>&1 </dev/null; then
-    echo "[$ME] WARNING: Failed to install '$line'" >&2
+    echo "WARNING: Failed to install '$line'" >&2
     return 0
   fi
 
   installed_skill_dir="$TMP_SKILLS_HOME/.agents/skills/$skill_name"
   if [[ -e "$target" || -L "$target" ]]; then
-    echo "[$ME] - $skill_name already installed, skipping move."
+    echo "- $skill_name already installed, skipping move."
   elif [[ -d "$installed_skill_dir" ]]; then
     mv "$installed_skill_dir" "$target"
-    echo "[$ME] - $skill_name -> $target"
+    echo "- $skill_name -> $target"
   else
-    echo "[$ME] WARNING: Installed skill '$skill_name' was not found at $installed_skill_dir" >&2
+    echo "WARNING: Installed skill '$skill_name' was not found at $installed_skill_dir" >&2
   fi
 }
 
@@ -100,7 +100,7 @@ declare -A wanted_skill_names=()
 for agent in "${AGENTS[@]}"; do
   manifest="$(manifest_path "$agent")"
   if [[ ! -f "$manifest" ]]; then
-    echo "[$ME] WARNING: Missing manifest $manifest" >&2
+    echo "WARNING: Missing manifest $manifest" >&2
     continue
   fi
 
@@ -121,8 +121,8 @@ done
 rm -rf "$SCRIPT_DIR/.agents" "$SCRIPT_DIR/.claude"
 
 # ── Symlink personal skills ─────────────────────────────────────
-echo "[$ME]"
-echo "[$ME] Symlinking personal skills"
+echo ""
+echo "Symlinking personal skills"
 
 PERSONAL_SKILLS_DIR="$SCRIPT_DIR/personal"
 if [[ -d "$PERSONAL_SKILLS_DIR" ]]; then
@@ -133,22 +133,22 @@ if [[ -d "$PERSONAL_SKILLS_DIR" ]]; then
     wanted_skill_names[$skill_name]=1
     target="$AGENT_SKILLS_DIR/$skill_name"
     if [[ -L "$target" && -e "$target" ]]; then
-      echo "[$ME] - $skill_name already symlinked, skipping."
+      echo "- $skill_name already symlinked, skipping."
     elif [[ -d "$target" && ! -L "$target" ]]; then
-      echo "[$ME] - $skill_name already exists as directory, skipping."
+      echo "- $skill_name already exists as directory, skipping."
     else
       ln -sfn "$skill_dir" "$target"
-      echo "[$ME] - Symlinked $skill_name -> $skill_dir"
+      echo "- Symlinked $skill_name -> $skill_dir"
     fi
   done
 else
-  echo "[$ME] No personal skills directory found at $PERSONAL_SKILLS_DIR, skipping symlinks."
+  echo "No personal skills directory found at $PERSONAL_SKILLS_DIR, skipping symlinks."
 fi
 
 # ── Remove skills no longer managed by manifests ────────────────
 prune_stale_managed_skills() {
-  echo "[$ME]"
-  echo "[$ME] Pruning stale managed skills"
+  echo ""
+  echo "Pruning stale managed skills"
 
   if [[ -f "$SKILLS_LOCK" ]]; then
     for entry in "$AGENT_SKILLS_DIR"/*; do
@@ -163,7 +163,7 @@ prune_stale_managed_skills() {
 
       if jq -e --arg n "$skill_name" '.skills[$n] != null' "$SKILLS_LOCK" >/dev/null 2>&1; then
         rm -rf "$entry"
-        echo "[$ME] - Removed stale managed skill $skill_name"
+        echo "- Removed stale managed skill $skill_name"
       fi
     done
 
@@ -179,14 +179,14 @@ prune_stale_managed_skills() {
 sweep_legacy_agent_skills() {
   [[ -d "$LEGACY_AGENT_SKILLS_DIR" ]] || return 0
 
-  echo "[$ME]"
-  echo "[$ME] Sweeping legacy skills in $LEGACY_AGENT_SKILLS_DIR"
+  echo ""
+  echo "Sweeping legacy skills in $LEGACY_AGENT_SKILLS_DIR"
 
   for entry in "$LEGACY_AGENT_SKILLS_DIR"/*; do
     [[ -e "$entry" || -L "$entry" ]] || continue
     skill_name="$(basename "$entry")"
     rm -rf "$entry"
-    echo "[$ME] - Removed legacy skill $skill_name"
+    echo "- Removed legacy skill $skill_name"
   done
 
   rmdir "$LEGACY_AGENT_SKILLS_DIR" "$HOME/.agents" 2>/dev/null || true
@@ -196,8 +196,8 @@ prune_stale_managed_skills
 sweep_legacy_agent_skills
 
 # ── Create per-agent skill views ─────────────────────────────────
-echo "[$ME]"
-echo "[$ME] Creating per-agent skill directories"
+echo ""
+echo "Creating per-agent skill directories"
 
 sync_agent_skills() {
   local agent="$1"
@@ -217,9 +217,9 @@ sync_agent_skills() {
 
     if [[ -e "$source" || -L "$source" ]]; then
       ln -sfn "../$skill_name" "$target"
-      echo "[$ME] - $agent/$skill_name -> ../$skill_name"
+      echo "- $agent/$skill_name -> ../$skill_name"
     else
-      echo "[$ME] WARNING: $agent manifest references missing skill '$skill_name'" >&2
+      echo "WARNING: $agent manifest references missing skill '$skill_name'" >&2
     fi
   done <"$manifest"
 
@@ -228,10 +228,10 @@ sync_agent_skills() {
     skill_name="$(basename "$entry")"
     if [[ -L "$entry" && ! -e "$entry" ]]; then
       unlink "$entry"
-      echo "[$ME] - Removed dead symlink $agent/$skill_name"
+      echo "- Removed dead symlink $agent/$skill_name"
     elif [[ -L "$entry" && -z "${wanted_skills[$skill_name]:-}" ]]; then
       unlink "$entry"
-      echo "[$ME] - Removed stale $agent/$skill_name"
+      echo "- Removed stale $agent/$skill_name"
     fi
   done
 }
@@ -244,8 +244,8 @@ for agent in "${AGENTS[@]}"; do
 done
 
 # ── Symlink skills utilities to dotfiles ────────────────────────
-echo "[$ME]"
-echo "[$ME] Symlinking binaries to dotfiles to enable \`u skills\`"
+echo ""
+echo "Symlinking binaries to dotfiles to enable \`u skills\`"
 
 SKILLS_BIN_DIR="$SCRIPT_DIR/bin"
 DOTFILES_UTILITIES_DIR="${DOTFILES_REPO_HOME:-$HOME/Repositories/davelens/dotfiles}/bin/utilities"
@@ -254,9 +254,9 @@ DOTFILES_SKILLS_UTILITY="$DOTFILES_UTILITIES_DIR/skills"
 if [[ -d "$SKILLS_BIN_DIR" ]]; then
   mkdir -p "$DOTFILES_UTILITIES_DIR"
   ln -sfn "$SKILLS_BIN_DIR" "$DOTFILES_SKILLS_UTILITY"
-  echo "[$ME] - skills -> $SKILLS_BIN_DIR"
+  echo "- skills -> $SKILLS_BIN_DIR"
 else
-  echo "[$ME] No skills bin directory found at $SKILLS_BIN_DIR, skipping utility symlink."
+  echo "No skills bin directory found at $SKILLS_BIN_DIR, skipping utility symlink."
 fi
 
 # ── Expose centralized skills to Claude Code ────────────────────
@@ -265,8 +265,8 @@ if [[ -d "$CLAUDE_CONFIG_DIR" || -L "$CLAUDE_CONFIG_DIR" ]]; then
   CLAUDE_SKILLS_DIR="$CLAUDE_CONFIG_DIR/skills"
   CLAUDE_AGENT_SKILLS_DIR="$AGENT_SKILLS_DIR/claude"
 
-  echo "[$ME]"
-  echo "[$ME] Claude installed; symlinking skills to $CLAUDE_SKILLS_DIR"
+  echo ""
+  echo "Claude installed; symlinking skills to $CLAUDE_SKILLS_DIR"
 
   if [[ -L "$CLAUDE_SKILLS_DIR" ]]; then
     ln -sfn "$CLAUDE_AGENT_SKILLS_DIR" "$CLAUDE_SKILLS_DIR"
@@ -288,27 +288,27 @@ if [[ -d "$CLAUDE_CONFIG_DIR" || -L "$CLAUDE_CONFIG_DIR" ]]; then
       rmdir "$CLAUDE_SKILLS_DIR"
       ln -s "$CLAUDE_AGENT_SKILLS_DIR" "$CLAUDE_SKILLS_DIR"
     else
-      echo "[$ME] Claude skills directory exists at $CLAUDE_SKILLS_DIR, leaving it unchanged."
+      echo "Claude skills directory exists at $CLAUDE_SKILLS_DIR, leaving it unchanged."
     fi
   else
     ln -s "$CLAUDE_AGENT_SKILLS_DIR" "$CLAUDE_SKILLS_DIR"
   fi
 else
-  echo "[$ME] Claude config directory not found at $CLAUDE_CONFIG_DIR, skipping."
+  echo "Claude config directory not found at $CLAUDE_CONFIG_DIR, skipping."
 fi
 
 # ── Sweep dead symlinks in skills root ──────────────────────────
-echo "[$ME]"
-echo "[$ME] Sweeping dead symlinks in $AGENT_SKILLS_DIR"
+echo ""
+echo "Sweeping dead symlinks in $AGENT_SKILLS_DIR"
 
 for entry in "$AGENT_SKILLS_DIR"/*; do
   [[ -L "$entry" ]] || continue
   if [[ ! -e "$entry" ]]; then
     skill_name="$(basename "$entry")"
     unlink "$entry"
-    echo "[$ME] - Removed dead symlink $skill_name"
+    echo "- Removed dead symlink $skill_name"
   fi
 done
 
-echo "[$ME]"
-echo "[$ME] Done."
+echo ""
+echo "Done."

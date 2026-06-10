@@ -1,8 +1,1 @@
-#!/usr/bin/env bash
-
-# `skills update` re-runs the full bootstrap. setup.sh installs into the
-# XDG-friendly ~/.config/agents/skills and sweeps the legacy ~/.agents/skills
-# that `npx skills` would otherwise recreate, avoiding skill collisions.
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-exec "$SCRIPT_DIR/setup.sh" "$@"
+../setup.sh
