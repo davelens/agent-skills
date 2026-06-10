@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
-# I detest having dot folders in my $HOME and try to leverage XDG wherever I
-# can. Because `npx skills` always installs global skills in ~/.agents/skills
-# without a means to override that target path, I have to resort to this
-# fuckery to get the behaviour I want.
+# `skills update` re-runs the full bootstrap. setup.sh installs into the
+# XDG-friendly ~/.config/agents/skills and sweeps the legacy ~/.agents/skills
+# that `npx skills` would otherwise recreate, avoiding skill collisions.
 
-ln -s ~/.config/agents/skills ~/.config/opencode/
-npx skills update -g
-rm -rf ~/.config/opencode/skills
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+exec "$SCRIPT_DIR/setup.sh" "$@"
