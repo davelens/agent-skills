@@ -16,6 +16,7 @@ mattpocock/skills@write-a-skill
 mattpocock/skills@zoom-out
 vercel-labs/skills@find-skills
 wshobson/agents@tailwind-design-system
+personal/add-flexible-content-type
 personal/ketch
 personal/project-conventions
 personal/project-memory
