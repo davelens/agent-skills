@@ -1,0 +1,100 @@
+---
+url: https://getbootstrap.com/docs/5.3/utilities/object-fit/
+title: Object fit · Bootstrap v5.3
+words: 324
+---
+Added in v5.3 View on GitHub
+
+Object fit
+
+Use the object fit utilities to modify how the content of a replaced element, such as an <img> or <video>, should be resized to fit its container.
+
+On this page On this page
+
+* * *
+
+- How it works
+- Examples
+- Responsive
+- Video
+- CSS
+  
+  - Sass utilities API
+
+How it works[](#how-it-works)
+
+Change the value of the object-fit property with our responsive object-fit utility classes. This property tells the content to fill the parent container in a variety of ways, such as preserving the aspect ratio or stretching to take up as much space as possible.
+
+Classes for the value of object-fit are named using the format .object-fit-{value}. Choose from the following values:
+
+- contain
+- cover
+- fill
+- scale (for scale-down)
+- none
+
+Examples[](#examples)
+
+Add the object-fit-{value} class to the replaced element:
+
+    
+
+html
+
+```html
+<img src="..." class="object-fit-contain border rounded" alt="...">
+<img src="..." class="object-fit-cover border rounded" alt="...">
+<img src="..." class="object-fit-fill border rounded" alt="...">
+<img src="..." class="object-fit-scale border rounded" alt="...">
+<img src="..." class="object-fit-none border rounded" alt="...">
+```
+
+Responsive[](#responsive)
+
+Responsive variations also exist for each object-fit value using the format .object-fit-{breakpoint}-{value}, for the following breakpoint abbreviations: sm, md, lg, xl, and xxl. Classes can be combined for various effects as you need.
+
+    
+
+html
+
+```html
+<img src="..." class="object-fit-sm-contain border rounded" alt="...">
+<img src="..." class="object-fit-md-contain border rounded" alt="...">
+<img src="..." class="object-fit-lg-contain border rounded" alt="...">
+<img src="..." class="object-fit-xl-contain border rounded" alt="...">
+<img src="..." class="object-fit-xxl-contain border rounded" alt="...">
+```
+
+Video[](#video)
+
+The .object-fit-{value} and responsive .object-fit-{breakpoint}-{value} utilities also work on <video> elements.
+
+```html
+<video src="..." class="object-fit-contain" autoplay></video>
+<video src="..." class="object-fit-cover" autoplay></video>
+<video src="..." class="object-fit-fill" autoplay></video>
+<video src="..." class="object-fit-scale" autoplay></video>
+<video src="..." class="object-fit-none" autoplay></video>
+```
+
+CSS[](#css)
+
+Sass utilities API[](#sass-utilities-api)
+
+Object fit utilities are declared in our utilities API in scss/_utilities.scss. Learn how to use the utilities API.
+
+scss/\utilities.scss
+
+```scss
+"object-fit": (
+  responsive: true,
+  property: object-fit,
+  values: (
+    contain: contain,
+    cover: cover,
+    fill: fill,
+    scale: scale-down,
+    none: none,
+  )
+),
+```

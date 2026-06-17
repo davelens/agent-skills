@@ -1,0 +1,256 @@
+#!/usr/bin/env bash
+#
+# sync-bootstrap-docs — mirror the latest Bootstrap 5.3 docs into
+# docs/memory/bootstrap/<version>/ as clean markdown, then (re)generate
+# that version's agent navigation INDEX.md.
+#
+# Idempotent: resolves the latest release, and if its version folder already
+# exists it exits without re-downloading. Pass --force to re-scrape anyway.
+#
+# Usage:
+#   sync-bootstrap-docs            sync latest if missing
+#   sync-bootstrap-docs --force    re-scrape latest even if present
+#   sync-bootstrap-docs --path     print the newest locally-mirrored version
+#                                  dir (no network); exit 1 if none exist
+#
+# Requires: curl, ketch, python3.
+
+set -euo pipefail
+
+MODE="sync"
+case "${1:-}" in
+  --force) MODE="force" ;;
+  --path)  MODE="path" ;;
+  "")      ;;
+  *) echo "Unknown argument: $1" >&2; exit 2 ;;
+esac
+
+# Resolve our own real location through any symlinks (the skill is symlinked
+# into ~/.config/agents/skills/...), so the mirror always lands in the canonical
+# repo regardless of where this script is invoked from or where the repo lives.
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
+# personal/bootstrap-5/bin -> repo root is three levels up.
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+MIRROR_ROOT="$REPO_ROOT/docs/memory/bootstrap"
+
+# ── --path: report newest local mirror, no network ──────────────
+if [[ "$MODE" == "path" ]]; then
+  newest="$(ls -d "$MIRROR_ROOT"/*/ 2>/dev/null | sort -V | tail -n1)"
+  [[ -n "$newest" ]] || { echo "No Bootstrap docs mirrored under $MIRROR_ROOT" >&2; exit 1; }
+  echo "${newest%/}"
+  exit 0
+fi
+
+for cmd in curl ketch python3; do
+  command -v "$cmd" >/dev/null 2>&1 || { echo "ERROR: '$cmd' not found on PATH." >&2; exit 1; }
+done
+
+FORCE=0
+[[ "$MODE" == "force" ]] && FORCE=1
+
+# ── Resolve latest release ──────────────────────────────────────
+echo "Resolving latest Bootstrap release..."
+RELEASE_JSON="$(curl -fsSL https://api.github.com/repos/twbs/bootstrap/releases/latest)"
+TAG="$(printf '%s' "$RELEASE_JSON" | grep '"tag_name"' | head -n1 | sed -E 's/.*"v?([0-9.]+)".*/\1/')"
+[[ -n "$TAG" ]] || { echo "ERROR: could not resolve latest version." >&2; exit 1; }
+VERSION="$TAG"
+DOCS_MM="$(echo "$VERSION" | cut -d. -f1-2)"   # e.g. 5.3
+DEST="$MIRROR_ROOT/$VERSION"
+BASE="https://getbootstrap.com/docs/$DOCS_MM"
+
+echo "Latest: v$VERSION  (docs base: $BASE)"
+
+if [[ -d "$DEST" && $FORCE -eq 0 ]]; then
+  echo "Already mirrored: $DEST"
+  echo "Nothing to do. Re-run with --force to re-scrape."
+  exit 0
+fi
+
+# ── Doc page slugs (Bootstrap 5.3 nav) ──────────────────────────
+read -r -d '' PAGES <<'EOF' || true
+getting-started/introduction
+getting-started/download
+getting-started/contents
+getting-started/browsers-devices
+getting-started/javascript
+getting-started/webpack
+getting-started/parcel
+getting-started/vite
+getting-started/accessibility
+getting-started/rfs
+getting-started/rtl
+customize/overview
+customize/sass
+customize/options
+customize/color
+customize/color-modes
+customize/components
+customize/css-variables
+customize/optimize
+layout/breakpoints
+layout/containers
+layout/grid
+layout/columns
+layout/gutters
+layout/utilities
+layout/z-index
+layout/css-grid
+content/reboot
+content/typography
+content/images
+content/tables
+content/figures
+forms/overview
+forms/form-control
+forms/select
+forms/checks-radios
+forms/range
+forms/input-group
+forms/floating-labels
+forms/layout
+forms/validation
+components/accordion
+components/alerts
+components/badge
+components/breadcrumb
+components/buttons
+components/button-group
+components/card
+components/carousel
+components/close-button
+components/collapse
+components/dropdowns
+components/list-group
+components/modal
+components/navbar
+components/navs-tabs
+components/offcanvas
+components/pagination
+components/placeholders
+components/popovers
+components/progress
+components/scrollspy
+components/spinners
+components/toasts
+components/tooltips
+helpers/clearfix
+helpers/color-background
+helpers/colored-links
+helpers/focus-ring
+helpers/icon-link
+helpers/position
+helpers/ratio
+helpers/stacks
+helpers/stretched-link
+helpers/text-truncation
+helpers/vertical-rule
+helpers/visually-hidden
+utilities/api
+utilities/background
+utilities/borders
+utilities/colors
+utilities/display
+utilities/flex
+utilities/float
+utilities/interactions
+utilities/link
+utilities/object-fit
+utilities/opacity
+utilities/overflow
+utilities/position
+utilities/shadows
+utilities/sizing
+utilities/spacing
+utilities/text
+utilities/vertical-align
+utilities/visibility
+utilities/z-index
+EOF
+
+# ── Scrape ──────────────────────────────────────────────────────
+echo "Scraping into $DEST"
+mkdir -p "$DEST"
+count=0; failed=0
+while IFS= read -r p; do
+  [[ -z "$p" ]] && continue
+  sec="$(dirname "$p")"; mkdir -p "$DEST/$sec"
+  out="$DEST/$p.md"
+  if [[ $FORCE -eq 0 && -s "$out" ]]; then continue; fi
+  if ketch scrape "$BASE/$p/" --select "main" --trim --max-chars 60000 > "$out" 2>/dev/null && [[ -s "$out" ]]; then
+    count=$((count+1)); printf '  %-40s %6sb\n' "$p" "$(wc -c < "$out")"
+  else
+    failed=$((failed+1)); rm -f "$out"; echo "  FAILED: $p" >&2
+  fi
+done <<< "$PAGES"
+echo "Scraped $count page(s); $failed failed."
+
+# ── Generate INDEX.md ───────────────────────────────────────────
+echo "Generating INDEX.md"
+DEST="$DEST" VERSION="$VERSION" python3 - <<'PY'
+import os,re,glob
+DEST=os.environ["DEST"]; VERSION=os.environ["VERSION"]
+os.chdir(DEST)
+SECTIONS=["getting-started","customize","layout","content","forms","components","helpers","utilities"]
+TITLES={"getting-started":"Getting started","customize":"Customize","layout":"Layout","content":"Content","forms":"Forms","components":"Components","helpers":"Helpers","utilities":"Utilities"}
+
+def parse(path):
+    lines=open(path,encoding="utf-8").read().splitlines()
+    title=""
+    for l in lines[:6]:
+        if l.startswith("title: "): title=l[7:].split(" · Bootstrap")[0]
+    idx=[i for i,l in enumerate(lines) if l.strip()=="---"]
+    body=lines[idx[1]+1:] if len(idx)>=2 else lines
+    desc=""; onp=None
+    for i,l in enumerate(body):
+        if "On this page" in l:
+            onp=i
+            for j in range(i-1,-1,-1):
+                t=body[j].strip()
+                if t and t!="View on GitHub" and t!=title: desc=t; break
+            break
+    secs=[]
+    if onp is not None:
+        k=onp+1
+        while k<len(body) and not re.match(r'^\* \* \*',body[k].strip()): k+=1
+        k+=1
+        while k<len(body):
+            l=body[k]
+            if re.match(r'^- (.+)',l): secs.append(l[2:].strip())
+            elif re.match(r'^\s+- ',l) or l.strip()=="": pass
+            else: break
+            k+=1
+    return title,desc,secs
+
+npages=len(glob.glob("*/*.md"))
+out=[f"# Bootstrap {VERSION} — Agent Navigation Index","",
+ "Offline mirror of the official Bootstrap docs. Each entry: file path, page title, one-line purpose, and its top-level sections (page anchors). Read a single file for full markup, class names, and `data-bs-*` attributes for that topic. Do not guess class names — verify against the file.","",
+ f"**Mirror root:** `docs/memory/bootstrap/{VERSION}/` · **Source:** `getbootstrap.com/docs/{'.'.join(VERSION.split('.')[:2])}` · {npages} pages","",
+ "## Quick routing","",
+ "| Need | File(s) |","|------|------|",
+ "| Responsive columns / grid | `layout/grid.md`, `layout/columns.md`, `layout/gutters.md` |",
+ "| Flexbox align / justify / order | `utilities/flex.md` |",
+ "| Margin / padding / gap scale (`m-*`, `p-*`, `gap-*`) | `utilities/spacing.md` |",
+ "| Text, colors, borders, sizing, display | `utilities/text.md`, `utilities/colors.md`, `utilities/borders.md`, `utilities/sizing.md`, `utilities/display.md` |",
+ "| Form inputs + validation | `forms/form-control.md`, `forms/validation.md`, `forms/input-group.md`, `forms/select.md` |",
+ "| Dark mode / theming / brand color | `customize/color-modes.md`, `customize/sass.md`, `customize/css-variables.md`, `customize/options.md` |",
+ "| JS component (toggle / methods / events) | that component's `components/*.md` |",
+ "| Required CSS/JS bundle + globals | `getting-started/introduction.md`, `getting-started/javascript.md` |",
+ "| Breakpoints (`sm md lg xl xxl`) | `layout/breakpoints.md` |",
+ ""]
+for sec in SECTIONS:
+    files=sorted(glob.glob(f"{sec}/*.md"))
+    if not files: continue
+    out.append(f"## {TITLES[sec]} (`{sec}/`)"); out.append("")
+    for f in files:
+        title,desc,secs=parse(f)
+        out.append(f"- [`{f}`]({f}) — **{title}**: {desc}")
+        if secs: out.append(f"  - _Sections:_ {', '.join(secs)}")
+    out.append("")
+open("INDEX.md","w",encoding="utf-8").write("\n".join(out))
+print(f"  INDEX.md: {npages} pages, {os.path.getsize('INDEX.md')} bytes")
+PY
+
+echo
+echo "Done: $DEST"
+echo "Remember to add a version row to docs/memory/bootstrap.md if this is a new version."
