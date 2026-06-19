@@ -10,21 +10,19 @@ live in `./docs/memory/`.
 
 ## Rules
 
-- `AGENTS.md`, `CLAUDE.md`, and `./docs/memory/` override any rule here.
+- `AGENTS.md`, `CLAUDE.md`, and `./docs/memory/` may contradict any individual rules
 - Perform required session-start setup silently; do not mention or explain it unless asked
 - Always answer in english
 - Always read these memory files when present:
   - `./docs/memory/architecture.md` 
   - `./docs/memory/coding-standards.md`
+- Spaces, not tabs (where applicable)
 - Blank lines contain only newline character (no trailing spaces/tabs)
-- Spaces, not tabs
 - Comments in sentence case, not all-caps
 - Bash section headers may use simple decorative borders
-- Commit per finished todo when commits are workflow.
 - Never `git push` without asking
 - Never write to `.claude/` or `.opencode/`.
-- Superpowers plans → `docs/adr/`.
-- do not overwrite, revert, or remove user changes unless explicitly requested
+- Do not overwrite, revert, or remove user changes unless explicitly requested
 - Edits inside the project root are always allowed; ask before editing anything outside it
 - Never run destructive commands (e.g. `rm -rf`) against paths outside the project root
 - Before installing packages or running install scripts:
