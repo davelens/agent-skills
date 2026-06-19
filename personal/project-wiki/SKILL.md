@@ -31,7 +31,7 @@ work already covered.
 ## Scope rules
 
 - Only document what you touched.
-- Use context already in session. Needs 10+ new file reads → skip.
+- Use context already in session. Needs 10+ new file reads to write → skip.
 - Missing entry beats shallow stub.
 - Never invent paths/columns/behavior. Verifiable only.
-- Target: <2min read, replaces 10+ file reads.
+- Target: entry readable in <2min, saves a future agent many file reads.

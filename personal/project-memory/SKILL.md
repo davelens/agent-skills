@@ -6,7 +6,7 @@ description: Read/write durable project-wide facts in `./docs/memory/`.
 # Durable Memory
 
 ## Layout
-`./docs/memory/index.md` + linked subsections (`<urlized-name>.md`).
+`docs/memory/index.md` + linked subsections (`<urlized-name>.md`).
 Read `index.md` at task start, plus `architecture.md`/`coding-standards.md`
 if present (baseline). Other subsections only when relevant.
 Create `index.md` if missing.
