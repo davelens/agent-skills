@@ -17,7 +17,7 @@ live in the owning skill, not here.
 |------|-------|-------|
 | `./CONTEXT.md` | domain glossary (ubiquitous language) | `grill-with-docs` |
 | `./docs/adr/` | decision records (why we chose X) | `grill-with-docs` |
-| `./docs/briefs/` | agent briefs / task prompts (intent *before* build) | — |
+| `./docs/briefs/` | agent briefs / task prompts (intent *before* build) | user |
 | `./docs/memory/` | living project-wide facts, constraints, conventions | `project-memory` |
 | `./docs/wiki/` | how features/models work *now* | `project-wiki` |
 

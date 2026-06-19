@@ -1,14 +1,14 @@
 ---
 name: project-memory
-description: Use when project stores durable context in `./docs/memory/`, or when user asks to remember/save/note a project-wide fact
+description: Read/write durable project-wide facts in `./docs/memory/`.
 ---
 
 # Durable Memory
 
 ## Layout
 `./docs/memory/index.md` + linked subsections (`<urlized-name>.md`).
-Read `index.md` at task start; load subsections only when relevant.
-Read `architecture.md` and `coding-standards.md` eagerly when present (baseline).
+Read `index.md` at task start, plus `architecture.md`/`coding-standards.md`
+if present (baseline). Other subsections only when relevant.
 Create `index.md` if missing.
 
 ## Belongs in memory

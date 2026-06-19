@@ -1,6 +1,6 @@
 ---
 name: project-wiki
-description: Use after a task changes a feature, model, role, integration, or domain concept. Checks `docs/wiki/` for gaps or stale entries; proposes targeted updates and writes only after user approval.
+description: Maintain `docs/wiki/` (how features/models work now) after functional changes.
 ---
 
 # Project Wiki
@@ -26,7 +26,7 @@ work already covered.
 2. For each affected area: exists? stale? would new entry help future agent?
 3. Propose to user in 2-3 sentences. Nothing qualifies → stop.
 4. On approval: write/update entry + parent `index.md`, per
-   [ENTRY-FORMAT.md](./ENTRY-FORMAT.md).
+   [ENTRY-FORMAT.md](./ENTRY-FORMAT.md) — read it before writing.
 
 ## Scope rules
 
@@ -35,6 +35,3 @@ work already covered.
 - Missing entry beats shallow stub.
 - Never invent paths/columns/behavior. Verifiable only.
 - Target: <2min read, replaces 10+ file reads.
-
-Structure, entry shape, and linking rules → [ENTRY-FORMAT.md](./ENTRY-FORMAT.md).
-Read it before writing or updating any entry.
