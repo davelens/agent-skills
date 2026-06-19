@@ -1,6 +1,6 @@
 ---
 name: project-conventions
-description: Global defaults for any project. Load at session start.
+description: Global defaults for any project
 ---
 
 # Project Conventions
