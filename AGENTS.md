@@ -5,4 +5,3 @@
 - Load `project-conventions` skill
 - Load `project-memory` skill
 - Load `project-wiki` skill if `./docs/wiki` exists
-- Load `git-commit` skill
