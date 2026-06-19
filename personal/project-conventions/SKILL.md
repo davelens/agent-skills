@@ -8,14 +8,24 @@ description: Global defaults for any project
 Defaults. Project-specific conventions (coding standards, branching, etc.)
 live in `./docs/memory/`.
 
+## Doc homes
+
+Where each kind of doc lives. Create only those that apply. Rules per home
+live in the owning skill, not here.
+
+| Path | Holds | Owner |
+|------|-------|-------|
+| `./CONTEXT.md` | domain glossary (ubiquitous language) | `grill-with-docs` |
+| `./docs/adr/` | decision records (why we chose X) | `grill-with-docs` |
+| `./docs/briefs/` | agent briefs / task prompts (intent *before* build) | — |
+| `./docs/memory/` | living project-wide facts, constraints, conventions | `project-memory` |
+| `./docs/wiki/` | how features/models work *now* | `project-wiki` |
+
 ## Rules
 
 - `AGENTS.md`, `CLAUDE.md`, and `./docs/memory/` may contradict any individual rules
 - Perform required session-start setup silently; do not mention or explain it unless asked
 - Always answer in english
-- Always read these memory files when present:
-  - `./docs/memory/architecture.md` 
-  - `./docs/memory/coding-standards.md`
 - Spaces, not tabs (where applicable)
 - Blank lines contain only newline character (no trailing spaces/tabs)
 - Comments in sentence case, not all-caps
