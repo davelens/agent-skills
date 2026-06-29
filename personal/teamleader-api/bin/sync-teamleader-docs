@@ -1,0 +1,257 @@
+#!/usr/bin/env bash
+#
+# sync-teamleader-docs — mirror the Teamleader Focus API docs
+# (developer.focus.teamleader.eu) into docs/memory/teamleader/ as clean
+# markdown, then (re)generate the agent navigation INDEX.md.
+#
+# The docs are unversioned (the API itself is versioned through the
+# X-Api-Version request header, not the docs URL), so there is a single
+# mirror directory. The endpoint list is discovered live from the site's
+# sitemap.xml on every sync, so newly added endpoints are picked up
+# automatically without editing this script.
+#
+# Idempotent: pages already mirrored are skipped unless --force is passed.
+#
+# Usage:
+#   sync-teamleader-docs            sync missing pages, regenerate INDEX
+#   sync-teamleader-docs --force    re-scrape every page
+#   sync-teamleader-docs --path     print the local mirror dir (no network);
+#                                   exit 1 if nothing is mirrored yet
+#
+# Requires: curl, ketch, python3.
+
+set -euo pipefail
+
+MODE="sync"
+case "${1:-}" in
+  --force) MODE="force" ;;
+  --path)  MODE="path" ;;
+  "")      ;;
+  *) echo "Unknown argument: $1" >&2; exit 2 ;;
+esac
+
+# Resolve our own real location through any symlinks (the skill is symlinked
+# into ~/.config/agents/skills/...), so the mirror always lands in the canonical
+# repo regardless of where this script is invoked from or where the repo lives.
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
+# personal/teamleader-api/bin -> repo root is three levels up.
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+MIRROR="$REPO_ROOT/docs/memory/teamleader"
+
+SITE="https://developer.focus.teamleader.eu"
+API_BASE="$SITE/docs/api"
+
+# ── --path: report local mirror, no network ─────────────────────
+if [[ "$MODE" == "path" ]]; then
+  [[ -f "$MIRROR/INDEX.md" ]] || { echo "No Teamleader docs mirrored under $MIRROR" >&2; exit 1; }
+  echo "$MIRROR"
+  exit 0
+fi
+
+for cmd in curl ketch python3; do
+  command -v "$cmd" >/dev/null 2>&1 || { echo "ERROR: '$cmd' not found on PATH." >&2; exit 1; }
+done
+
+FORCE=0
+[[ "$MODE" == "force" ]] && FORCE=1
+
+# ── Guide pages (hand-picked; the narrative docs) ───────────────
+read -r -d '' GUIDES <<'EOF' || true
+introduction
+general-principles
+authentication
+sideloading
+changelog/types-of-changes
+changelog/breaking-changes
+changelog/additions
+changelog/upgrading-api-version
+EOF
+
+# ── Discover API endpoint slugs from the sitemap ────────────────
+echo "Discovering API pages from sitemap..."
+SLUGS="$(curl -fsSL "$SITE/sitemap.xml" \
+  | grep -oP '(?<=<loc>)[^<]+' \
+  | grep -oP "(?<=$API_BASE/)[a-z0-9-]+$" \
+  | sort -u)"
+[[ -n "$SLUGS" ]] || { echo "ERROR: no API slugs found in sitemap." >&2; exit 1; }
+echo "Found $(printf '%s\n' "$SLUGS" | wc -l) API pages."
+
+scrape_one() { # url outfile
+  local url="$1" out="$2"
+  if [[ $FORCE -eq 0 && -s "$out" ]]; then return 0; fi
+  if ketch scrape "$url" --select main --trim --max-chars 60000 > "$out" 2>/dev/null && [[ -s "$out" ]]; then
+    printf '  %-46s %7sb\n' "$(basename "$out")" "$(wc -c < "$out")"
+  else
+    rm -f "$out"; echo "  FAILED: $url" >&2; return 1
+  fi
+}
+
+# ── Scrape guides ───────────────────────────────────────────────
+echo "Scraping guides into $MIRROR/guides"
+mkdir -p "$MIRROR/guides"
+gcount=0; gfail=0
+while IFS= read -r g; do
+  [[ -z "$g" ]] && continue
+  out="$MIRROR/guides/${g//\//-}.md"
+  if scrape_one "$SITE/docs/$g" "$out"; then gcount=$((gcount+1)); else gfail=$((gfail+1)); fi
+done <<< "$GUIDES"
+
+# ── Scrape API endpoints ────────────────────────────────────────
+echo "Scraping API pages into $MIRROR/api"
+mkdir -p "$MIRROR/api"
+acount=0; afail=0
+while IFS= read -r s; do
+  [[ -z "$s" ]] && continue
+  out="$MIRROR/api/$s.md"
+  if scrape_one "$API_BASE/$s" "$out"; then acount=$((acount+1)); else afail=$((afail+1)); fi
+done <<< "$SLUGS"
+echo "Guides: $gcount ok / $gfail failed.  API: $acount ok / $afail failed."
+
+# ── Generate INDEX.md ───────────────────────────────────────────
+echo "Generating INDEX.md"
+MIRROR="$MIRROR" python3 - <<'PY'
+import os, re, glob
+MIRROR = os.environ["MIRROR"]
+os.chdir(MIRROR)
+
+# Canonical category order as shown on the site's API Reference landing page.
+ORDER = ["General","CRM","Deals","Calendar","Invoicing","Expenses","Products",
+         "Legacy Projects","New Projects","Planning","Tasks","Time Tracking",
+         "Tickets","Files","Templates","Other"]
+
+def read(path):
+    return open(path, encoding="utf-8").read().splitlines()
+
+def frontmatter_title(lines):
+    for l in lines[:6]:
+        if l.startswith("title: "):
+            return l[7:].split(" | Teamleader")[0].strip()
+    return ""
+
+def body_after_frontmatter(lines):
+    idx = [i for i, l in enumerate(lines) if l.strip() == "---"]
+    return lines[idx[1]+1:] if len(idx) >= 2 else lines
+
+def breadcrumb(body):
+    # Leading list items until the first blank line: home, "API Reference",
+    # Category, [Resource], [method]. Drop home + "API Reference".
+    crumbs = []
+    for l in body:
+        s = l.strip()
+        if s.startswith("- "):
+            crumbs.append(s[2:].strip())
+        elif s == "":
+            if crumbs:
+                break
+            continue
+        else:
+            break
+    crumbs = [c for c in crumbs if c and c != "[](/)" and c != "API Reference"]
+    return crumbs
+
+def description(body, title):
+    # Endpoint pages: first prose line after the first fenced code block
+    # (the "POST https://..." block). Overview pages: first prose line after
+    # the H1 title. Fall back to the first prose line found.
+    in_fence = False
+    seen_fence = False
+    for l in body:
+        s = l.strip()
+        if s.startswith("```"):
+            in_fence = not in_fence
+            seen_fence = seen_fence or True
+            continue
+        if in_fence:
+            continue
+        if not s or s.startswith("- ") or s == title or s == "On this page":
+            continue
+        if s.startswith("http") and " " not in s:
+            continue
+        # Skip sidebar nav stubs (rendered with leaf/folder glyphs) and
+        # anchor-heading lines (Docusaurus marks them with a trailing ZWSP).
+        if s[0] in ("\U0001F4C4", "\U0001F5C3") or s.startswith("📄") or s.startswith("🗃"):
+            continue
+        if s.endswith("\u200b"):
+            continue
+        return s
+    return ""
+
+cats = {}        # category -> {resource_key: {"title","desc","file","methods":[...]}}
+def cat_slot(category):
+    return cats.setdefault(category, {})
+
+for f in sorted(glob.glob("api/*.md")):
+    lines = read(f)
+    title = frontmatter_title(lines)
+    body = body_after_frontmatter(lines)
+    crumbs = breadcrumb(body)
+    if not crumbs:
+        continue
+    category = crumbs[0]
+    resource = crumbs[1] if len(crumbs) > 1 else title
+    method = crumbs[2] if len(crumbs) > 2 else None
+    desc = description(body, title)
+    slot = cat_slot(category)
+    res = slot.setdefault(resource, {"title": resource, "desc": "", "file": None, "methods": []})
+    if method is None:
+        # Resource overview page.
+        res["file"] = f
+        res["desc"] = desc
+    else:
+        res["methods"].append((title, desc, f))
+
+# Guides table
+guides = []
+for f in sorted(glob.glob("guides/*.md")):
+    lines = read(f)
+    title = frontmatter_title(lines)
+    desc = description(body_after_frontmatter(lines), title)
+    guides.append((title, desc, f))
+
+napi = len(glob.glob("api/*.md"))
+out = []
+out += ["# Teamleader Focus API — Agent Navigation Index", "",
+ "Offline mirror of the official Teamleader Focus API docs "
+ "(`developer.focus.teamleader.eu`). Each API entry is a `resource.action` "
+ "RPC method called via `POST https://api.focus.teamleader.eu/<resource>.<action>` "
+ "with a JSON body. Read a single file for the full request body schema, "
+ "field types, possible values, includes, and a JSON example. Do not guess "
+ "field names or filters — verify against the file.", "",
+ f"**Mirror root:** `docs/memory/teamleader/` · **Source:** `developer.focus.teamleader.eu/docs` · {napi} API pages", "",
+ "## Start here (guides)", "",
+ "| Guide | File |", "|-------|------|"]
+for title, desc, f in guides:
+    out.append(f"| {title} — {desc} | [`{f}`]({f}) |")
+out += ["",
+ "- **Auth:** OAuth 2 authorization-code flow + token refresh → `guides/authentication.md`.",
+ "- **Conventions:** RPC endpoint style, pagination, filtering, sorting, errors, rate limits → `guides/general-principles.md`.",
+ "- **Sideloading** (embedding related resources via `includes`) → `guides/sideloading.md`.",
+ "- **Versioning / breaking changes** (`X-Api-Version` header) → `guides/changelog-*.md`.", "",
+ "## API reference by domain", ""]
+
+ordered = [c for c in ORDER if c in cats] + [c for c in cats if c not in ORDER]
+for category in ordered:
+    out.append(f"### {category}")
+    out.append("")
+    for rname in sorted(cats[category]):
+        res = cats[category][rname]
+        head = f"**{res['title']}**"
+        if res["file"]:
+            head += f" ([`{res['file']}`]({res['file']}))"
+        if res["desc"]:
+            head += f" — {res['desc']}"
+        out.append(f"- {head}")
+        for mtitle, mdesc, mf in sorted(res["methods"]):
+            line = f"  - [`{mtitle}`]({mf})"
+            if mdesc:
+                line += f" — {mdesc}"
+            out.append(line)
+    out.append("")
+
+open("INDEX.md", "w", encoding="utf-8").write("\n".join(out))
+print(f"  INDEX.md: {napi} API pages, {len(guides)} guides, {os.path.getsize('INDEX.md')} bytes")
+PY
+
+echo
+echo "Done: $MIRROR"

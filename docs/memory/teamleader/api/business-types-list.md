@@ -1,0 +1,202 @@
+---
+url: https://developer.focus.teamleader.eu/docs/api/business-types-list
+title: businessTypes.list | Teamleader Developers
+words: 259
+---
+- [](/)
+- API Reference
+- CRM
+- Business Types
+- businessTypes.list
+
+businessTypes.list
+
+```
+POST https://api.focus.teamleader.eu/businessTypes.list
+```
+
+Get the names of business types (legal structures) a company can have within a certain country, sorted alphabetically.
+
+Request​
+
+- application/json
+
+<!--THE END-->
+
+- Body
+- Example
+
+Bodyrequired
+
+- countrystring
+  
+  Example: BE
+
+```json
+
+{
+
+  "country": "BE"
+
+}
+```
+
+Responses​
+
+- 200
+
+Response Headers
+
+<!--THE END-->
+
+- application/json
+
+<!--THE END-->
+
+- Schema
+- Example (auto)
+- Example
+
+Schema
+
+- data object\[]
+  
+  Array [
+  
+  idstring
+  
+  Example: fd48d4a3-b9dc-4eac-8071-5889c9f21e5d
+  
+  namestring
+  
+  Example: VZW/ASBL
+  
+  countrystring
+  
+  Example: BE
+  
+  ]
+
+```json
+
+{
+
+  "data": [
+
+    {
+
+      "id": "fd48d4a3-b9dc-4eac-8071-5889c9f21e5d",
+
+      "name": "VZW/ASBL",
+
+      "country": "BE"
+
+    }
+
+  ]
+
+}
+```
+
+```json
+
+{
+
+  "data": [
+
+    {
+
+      "id": "fd48d4a3-b9dc-4eac-8071-5889c9f21e5d",
+
+      "name": "VZW/ASBL",
+
+      "country": "BE"
+
+    }
+
+  ]
+
+}
+```
+
+Authorization: http
+
+```
+name: httpBearertype: httpscheme: bearer
+```
+
+- csharp
+- curl
+- dart
+- go
+- http
+- java
+- javascript
+- kotlin
+- c
+- nodejs
+- objective-c
+- ocaml
+- php
+- postman-cli
+- powershell
+- python
+- r
+- ruby
+- rust
+- shell
+- swift
+
+<!--THE END-->
+
+- HTTPCLIENT
+- RESTSHARP
+
+```csharp
+var client = new HttpClient();
+var request = new HttpRequestMessage(HttpMethod.Post, "https://api.focus.teamleader.eu/businessTypes.list");
+request.Headers.Add("Accept", "application/json");
+request.Headers.Add("Authorization", "Bearer <token>");
+var content = new StringContent("{\n  \"country\": \"BE\"\n}", null, "application/json");
+request.Content = content;
+var response = await client.SendAsync(request);
+response.EnsureSuccessStatusCode();
+Console.WriteLine(await response.Content.ReadAsStringAsync());
+```
+
+RequestCollapse all
+
+Base URL
+
+Edit
+
+https://api.focus.teamleader.eu
+
+Auth
+
+Bearer Token
+
+Body required
+
+- Example (from schema)
+- Example
+
+```json
+{
+  "country": "BE"
+}
+```
+
+Send API Request
+
+ResponseClear
+
+Click the Send API Request button above and see the response here!
+
+Previous  
+\
+Business Types
+
+Next  
+\
+Tags

@@ -1,0 +1,300 @@
+---
+url: https://developer.focus.teamleader.eu/docs/general-principles
+title: General Principles | Teamleader Developers
+words: 861
+---
+- [](/)
+- General Principles
+
+On this page
+
+General Principles
+
+Endpoints​
+
+Our API consists of HTTP RPC-style methods, in the form of https://api.focus.teamleader.eu/resource.action.
+
+We chose this action based approach over the more popular REST, because it enables us to have domain related actions on resources such as invoices.book, timetracking.start and timetracking.stop.
+
+Transport Security​
+
+We expect all network clients to make use of TLS 1.2 or higher when connecting to our infrastructure.
+
+Requests​
+
+All methods must be called using HTTPS. Data is passed as JSON data in a POST request.
+
+POST https://api.focus.teamleader.eu/invoices.list
+
+```json
+
+{
+
+    "filter": {
+
+        "department_id": "9d4096c3-813f-4bd5-b3c4-4091807b5b74"
+
+    },
+
+    "page": {
+
+        "size": 50,
+
+        "number": 3
+
+    }
+
+}
+```
+
+Responses​
+
+Both single objects and collections are returned as JSON objects, keyed by data in the top level of a JSON object:
+
+```json
+
+{
+
+    "data": {
+
+        "id": "f1dfb84c-3c29-4548-9b9b-9090a080742a",
+
+        "first_name": "Erlich",
+
+        "last_name": "Bachman",
+
+        "salutation": "Mr",
+
+        "email": "info@piedpiper.eu"
+
+    }
+
+}
+```
+
+Responses may also contain meta data for pagination.
+
+Sample response with pagination:
+
+```json
+
+{
+
+    "data": [
+
+        {
+
+            "id": "f1dfb84c-3c29-4548-9b9b-9090a080742a",
+
+            "first_name": "Erlich",
+
+            "last_name": "Bachman",
+
+            "salutation": "Mr",
+
+            "email": "info@piedpiper.eu"
+
+        },
+
+        {
+
+            "id": "f1dfb84c-3c29-4548-9b9b-9090a080742b",
+
+            "first_name": "John",
+
+            "last_name": "Doe",
+
+            "salutation": "Mr",
+
+            "email": "john@piedpiper.eu"
+
+        }
+
+    ],
+
+    "meta": {
+
+        "page": {
+
+            "size": 20,
+
+            "number": 2
+
+        },
+
+        "matches": 200
+
+    }
+
+}
+```
+
+Errors​
+
+Errors are always returned as an array of error objects, keyed by errors in the top level of a JSON object:
+
+```json
+
+{
+
+  "errors": [
+
+    {
+
+      "title": "Company name must not be empty"
+
+    }
+
+  ]
+
+}
+```
+
+Rate limiting​
+
+To ensure a fast and predictable experience for everyone, we limit the number of calls your integration (or client id) can make to a specific Teamleader account.  
+To calculate this, we use the sliding window principle: before allowing requests, we check how many requests your integration made in the last minute. If you would cross your limit, we deny the request by replying with a specific HTTP error.
+
+HTTP 429 Too Many Requests
+
+You will be able to make a request again, if the oldest request we took into account falls outside the last minute window.  
+To help you predict this, you can find rate limiting specific headers on each response:
+
+```text
+
+x-ratelimit-limit: 200
+
+# the number of requests we allow per sliding minute
+
+
+
+x-ratelimit-reset: 2021-06-15T10:51:23.035+0100
+
+# the exact time your oldest significant request will expire; 
+
+# when over limit, this is the earliest time you'll be able to successfully make requests again
+
+
+
+x-ratelimit-remaining: 78
+
+# the number of requests you have left before you will be denied access; 
+
+# note that this number can go up if earlier requests expire (after one minute)
+```
+
+You can use these headers to
+
+- programmatically check the x-ratelimit-remaining number to avoid making calls that will be denied anyways, if the number is 0
+- postpone execution until x-ratelimit-reset time to avoid waiting not long enough or too long before trying a next request
+
+If you consistently bump into rate limits
+
+- check if you can use .list endpoints instead of .info endpoints (did you know you can filter .list endpoints with a list of entity ids?)
+- check if you can limit the items you fetch by making use of specific filters, eg. updated_since
+- check if you can replace periodical checks with webhooks
+- check if you can side-load related entities instead of fetching them yourself
+- ask us for help through api@teamleader.eu
+
+Status codes​
+
+When objects are created, we return a 201 response containing the id and type of the new resource:
+
+```json
+
+{
+
+  "type": "contact",
+
+  "id": "9d4096c3-813f-4bd5-b3c4-4091807b5b74"
+
+}
+```
+
+When objects are updated or actions are performed, we often return an empty response with a 204 status code.
+
+Common used status codes:
+
+- 200 - OK
+- 201 - Created, when resources are created
+- 204 - No Content, on resource updates or actions
+- 400 - Bad Request, the request contains invalid data or references non-existing resources
+- 401 - Unauthorized, invalid or missing access token
+- 403 - Forbidden, not allowed to access this resource
+- 404 - Not Found, resource not found
+- 429 - Too Many Requests, your client has reached the API rate limit
+- 500 - Internal Server Error, something went wrong on our end
+
+Collections​
+
+Collections are groups of items, represented as JSON arrays [], such as:
+
+- Line items for quotations, invoices
+- Addresses for contacts, companies
+- Customer tags
+- Custom fields
+
+Updating collections​
+
+Collections are replaced entirely during updates, so all the wanted values should be provided when updating entities. Other existing values which are not provided will be removed.
+
+POST https://api.focus.teamleader.eu/contacts.update
+
+```json
+
+{
+
+  "id": "f79a44dc-ec94-0d3c-b63e-8dcf41bba54e",
+
+  "tags": [
+
+    "existing tag",
+
+    "a new tag"
+
+  ],
+
+  "custom_fields": [
+
+    {
+
+      "id": "0da89a10-794d-021d-9b2c-1f71dcd22489",
+
+      "value": "existing value"
+
+    },
+
+    {
+
+      "id": "fe50d0c5-49ba-0c12-8a34-d63becc7049e",
+
+      "value": "a new value"
+
+    }
+
+  ]
+
+}
+```
+
+> Note:
+> 
+> - There is an exception for custom field collections where partial updates are possible, by including the parameter customfieldsupdate_strategy with the value partial in the request body.
+> - This will allow updating only the values of specific custom fields and leaving the remaining ones unchanged.
+
+Previous  
+\
+Introduction
+
+Next  
+\
+Authentication
+
+- Endpoints
+- Transport Security
+- Requests
+- Responses
+- Errors
+- Rate limiting
+- Status codes
+- Collections

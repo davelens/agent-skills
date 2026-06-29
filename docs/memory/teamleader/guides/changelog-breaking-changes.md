@@ -1,0 +1,177 @@
+---
+url: https://developer.focus.teamleader.eu/docs/changelog/breaking-changes
+title: Breaking Changes | Teamleader Developers
+words: 920
+---
+- [](/)
+- Changes & Upgrades
+- Breaking Changes
+
+On this page
+
+Breaking Changes
+
+We list all backwards-incompatible changes here. As described before, new additions and forwards-compatible changes don’t need a new API version and can be found here.
+
+2023-10-01​
+
+* * *
+
+- As of October 1st 2023, we expect all network clients to make use of TLS 1.2 or higher when connecting to our infrastructure.
+
+2023-09-26​
+
+* * *
+
+- When updating events through events.update, links to deals must also be provided otherwise existing deal link(s) will be removed.
+- unit_price.currency is no longer returned for line items on the response of invoices.info, subscriptions.info, quotations.info and creditNotes.info.
+- unit_price.currency is no longer supported or validated on line items for invoices, quotations, subscriptions & credit notes endpoints. Instead, it will be supported on the document level for
+  
+  - invoices.draft
+  - invoices.update
+  - quotations.create
+  - quotations.update
+- customFieldDefinitions.list and customFieldDefinitions.info will now return configuration options (for single and multiple select custom fields) as an array of objects.
+- We updated the location format of returned by /meetings.info endpoint
+- Both /meetings.list and /meetings.info will now return a meeting title instead of name
+
+2022-09-15​
+
+* * *
+
+- The property remark has been renamed to note on:
+  
+  - subscriptions.info
+  - subscriptions.list
+- The property periodicity has been replaced by billing_cycle on:
+  
+  - subscriptions.info
+  - subscriptions.list
+- The property tags will no longer be converted to lowercase on:
+  
+  - companies.list
+  - companies.info
+  - contacts.list
+  - contacts.info
+- The property tag will no longer be converted to lowercase on:
+  
+  - tags.list
+
+2021-09-01​
+
+* * *
+
+- The property description is now returned in Markdown instead of HTML on:
+  
+  - products.info
+  - products.list
+
+2020-05-01​
+
+* * *
+
+- The property title is added to the response of:
+  
+  - tasks.list
+  - tasks.info
+- The property title is added and required on:
+  
+  - tasks.create
+  - tasks.update
+- The property description is no longer required on:
+  
+  - tasks.create
+  - tasks.update
+
+2020-01-01​
+
+* * *
+
+- The property assignee is now returned as null instead of assignee.id being returned as null on:
+  
+  - tasks.list
+  - tasks.info
+- The property assignee is now accepting null instead of assignee.id on:
+  
+  - tasks.create
+  - tasks.update
+
+2019-10-09​
+
+* * *
+
+- We added billingmethod and budget, and billingmethod and price to milestones.create.
+  
+  - When choosing timeandmaterials or non_invoiceable as the billing method, you can provide a budget.
+  - When choosing fixed_price as the billing method, you need to provide the price.
+
+2019-07-03​
+
+* * *
+
+- The property todo has been renamed to task on the following endpoints:
+  
+  - events.list
+  - events.info
+- We renamed the context field for work orders on customFieldDefinitions from werkbonnen to work_orders
+- The property dueat was removed in favour of dueon. Additionally, due_on is a date with format YYYY-MM-DD, instead of a ISO8601 datetime. These changes affect the following endpoints:
+  
+  - tasks.info
+  - tasks.list
+  - tasks.create
+  - tasks.update
+- We won't accept project as a subject anymore in timeTracking.add, timeTracking.update, timers.start and timers.update. We wrongly accepted this in the past, but time tracking always needs to be coupled to a milestone. Please use the milestone subject instead. For older versions, we will link the time tracked to the oldest open milestone. If there is no open milestone, it's linked to the most recent closed or done milestone.
+
+2019-03-13​
+
+* * *
+
+- The property tax has been changed. Instead of giving you the rate of the tax it now shows the id and the type of the tax. This has been changed on the following endpoints:
+  
+  - invoices.info
+  - creditNote.info
+  - quotations.info
+- We simplified the products.info and products.list endpoints:
+  
+  - name and description are no longer wrapped in a translations object.
+  - external_id was renamed to code
+  - prices are temporarily no longer returned, to avoid confusion, as they didn't take into account price lists
+
+2019-01-24​
+
+* * *
+
+- Previously, the invoices.info endpoint returned an non-existing or empty extendeddescription as an empty string, while invoices.draft and invoices.update didn't allow an empty string as extendeddescription. From now on, invoices.info will return an non-existing or empty extended_description as null, to make this more consistent and interchangeable.
+- Invoices can now have three statuses (draft, outstanding or matched) instead of two (draft or booked). Therefore the status property in invoices.list and invoices.info will either return outstanding or matched for invoices that were previously just booked. This is also reflected in the status filter on invoices.list: to allow you to still query all outstanding and matched invoices (previously all booked) , it now only accepts an array of filter values (eg. ["outstanding", "matched"] or ["draft"]).
+- The property localbusinessnumber was renamed to nationalidentificationnumber on the following endpoints:
+  
+  - companies.info
+  - companies.list
+  - companies.add
+  - companies.update
+  - invoices.info
+  - creditNotes.info
+- An invoice number actually contains the bookyear, so from now on, you will see eg. 2018 / 27 instead of 27. This is reflected in the invoice_number property in the invoices.list and invoices.info endpoints.
+
+2018-10-30​
+
+* * *
+
+- The top-level property customer was removed on all deal endpoints. Earlier, this property could already be found under the lead.customer property. If you were still using the customer property, just wrap it in an object under a lead key.
+- The contacts.list & companies.list endpoints used to give back an object under the address key. This object is now returned under the primary_address key.
+
+Previous  
+\
+Additions
+
+- 2023-10-01
+- 2023-09-26
+- 2022-09-15
+- 2021-09-01
+- 2020-05-01
+- 2020-01-01
+- 2019-10-09
+- 2019-07-03
+- 2019-03-13
+- 2019-01-24
+- 2018-10-30

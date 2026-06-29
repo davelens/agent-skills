@@ -1,0 +1,129 @@
+---
+url: https://developer.focus.teamleader.eu/docs/api/tasks-reopen
+title: tasks.reopen | Teamleader Developers
+words: 187
+---
+- [](/)
+- API Reference
+- Tasks
+- Tasks
+- tasks.reopen
+
+tasks.reopen
+
+```
+POST https://api.focus.teamleader.eu/tasks.reopen
+```
+
+Reopen a task that had been marked as complete.
+
+Request​
+
+- application/json
+
+<!--THE END-->
+
+- Body
+- Example
+
+Bodyrequired
+
+- idstringrequired
+  
+  Example: 46156648-87c6-478d-8aa7-1dc3a00dacab
+
+```json
+
+{
+
+  "id": "46156648-87c6-478d-8aa7-1dc3a00dacab"
+
+}
+```
+
+Responses​
+
+- 204
+
+Response Headers
+
+Authorization: http
+
+```
+name: httpBearertype: httpscheme: bearer
+```
+
+- csharp
+- curl
+- dart
+- go
+- http
+- java
+- javascript
+- kotlin
+- c
+- nodejs
+- objective-c
+- ocaml
+- php
+- postman-cli
+- powershell
+- python
+- r
+- ruby
+- rust
+- shell
+- swift
+
+<!--THE END-->
+
+- HTTPCLIENT
+- RESTSHARP
+
+```csharp
+var client = new HttpClient();
+var request = new HttpRequestMessage(HttpMethod.Post, "https://api.focus.teamleader.eu/tasks.reopen");
+request.Headers.Add("Authorization", "Bearer <token>");
+var content = new StringContent("{\n  \"id\": \"46156648-87c6-478d-8aa7-1dc3a00dacab\"\n}", null, "application/json");
+request.Content = content;
+var response = await client.SendAsync(request);
+response.EnsureSuccessStatusCode();
+Console.WriteLine(await response.Content.ReadAsStringAsync());
+```
+
+RequestCollapse all
+
+Base URL
+
+Edit
+
+https://api.focus.teamleader.eu
+
+Auth
+
+Bearer Token
+
+Body required
+
+- Example (from schema)
+- Example
+
+```json
+{
+  "id": "46156648-87c6-478d-8aa7-1dc3a00dacab"
+}
+```
+
+Send API Request
+
+ResponseClear
+
+Click the Send API Request button above and see the response here!
+
+Previous  
+\
+tasks.complete
+
+Next  
+\
+tasks.delete
