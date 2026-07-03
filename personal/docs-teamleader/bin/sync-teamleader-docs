@@ -22,14 +22,6 @@
 
 set -euo pipefail
 
-MODE="sync"
-case "${1:-}" in
-  --force) MODE="force" ;;
-  --path)  MODE="path" ;;
-  "")      ;;
-  *) echo "Unknown argument: $1" >&2; exit 2 ;;
-esac
-
 # Resolve our own real location through any symlinks (the skill is symlinked
 # into ~/.config/agents/skills/...), so the mirror always lands in the canonical
 # repo regardless of where this script is invoked from or where the repo lives.
@@ -42,19 +34,16 @@ MIRROR="$REPO_ROOT/docs/memory/teamleader"
 SITE="https://developer.focus.teamleader.eu"
 API_BASE="$SITE/docs/api"
 
+# shellcheck source=../../../lib/docs-mirror.sh
+source "$REPO_ROOT/lib/docs-mirror.sh"
+
+dm_parse_args "${1:-}"
+DM_SELECT="main"
+
 # ── --path: report local mirror, no network ─────────────────────
-if [[ "$MODE" == "path" ]]; then
-  [[ -f "$MIRROR/INDEX.md" ]] || { echo "No Teamleader docs mirrored under $MIRROR" >&2; exit 1; }
-  echo "$MIRROR"
-  exit 0
-fi
+[[ "$DM_MODE" == "path" ]] && dm_print_path_single "$MIRROR" "Teamleader"
 
-for cmd in curl ketch python3; do
-  command -v "$cmd" >/dev/null 2>&1 || { echo "ERROR: '$cmd' not found on PATH." >&2; exit 1; }
-done
-
-FORCE=0
-[[ "$MODE" == "force" ]] && FORCE=1
+dm_require curl ketch python3
 
 # ── Guide pages (hand-picked; the narrative docs) ───────────────
 read -r -d '' GUIDES <<'EOF' || true
@@ -77,34 +66,22 @@ SLUGS="$(curl -fsSL "$SITE/sitemap.xml" \
 [[ -n "$SLUGS" ]] || { echo "ERROR: no API slugs found in sitemap." >&2; exit 1; }
 echo "Found $(printf '%s\n' "$SLUGS" | wc -l) API pages."
 
-scrape_one() { # url outfile
-  local url="$1" out="$2"
-  if [[ $FORCE -eq 0 && -s "$out" ]]; then return 0; fi
-  if ketch scrape "$url" --select main --trim --max-chars 60000 > "$out" 2>/dev/null && [[ -s "$out" ]]; then
-    printf '  %-46s %7sb\n' "$(basename "$out")" "$(wc -c < "$out")"
-  else
-    rm -f "$out"; echo "  FAILED: $url" >&2; return 1
-  fi
-}
-
 # ── Scrape guides ───────────────────────────────────────────────
 echo "Scraping guides into $MIRROR/guides"
-mkdir -p "$MIRROR/guides"
 gcount=0; gfail=0
 while IFS= read -r g; do
   [[ -z "$g" ]] && continue
   out="$MIRROR/guides/${g//\//-}.md"
-  if scrape_one "$SITE/docs/$g" "$out"; then gcount=$((gcount+1)); else gfail=$((gfail+1)); fi
+  if dm_scrape "$SITE/docs/$g" "$out" "$(basename "$out")"; then gcount=$((gcount+1)); else gfail=$((gfail+1)); fi
 done <<< "$GUIDES"
 
 # ── Scrape API endpoints ────────────────────────────────────────
 echo "Scraping API pages into $MIRROR/api"
-mkdir -p "$MIRROR/api"
 acount=0; afail=0
 while IFS= read -r s; do
   [[ -z "$s" ]] && continue
   out="$MIRROR/api/$s.md"
-  if scrape_one "$API_BASE/$s" "$out"; then acount=$((acount+1)); else afail=$((afail+1)); fi
+  if dm_scrape "$API_BASE/$s" "$out" "$(basename "$out")"; then acount=$((acount+1)); else afail=$((afail+1)); fi
 done <<< "$SLUGS"
 echo "Guides: $gcount ok / $gfail failed.  API: $acount ok / $afail failed."
 

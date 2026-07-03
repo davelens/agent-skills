@@ -21,14 +21,6 @@
 
 set -euo pipefail
 
-MODE="sync"
-case "${1:-}" in
-  --force) MODE="force" ;;
-  --path)  MODE="path" ;;
-  "")      ;;
-  *) echo "Unknown argument: $1" >&2; exit 2 ;;
-esac
-
 # Resolve our own real location through any symlinks (the skill is symlinked
 # into ~/.config/agents/skills/...), so the mirror always lands in the canonical
 # repo regardless of where this script is invoked from or where the repo lives.
@@ -40,20 +32,16 @@ MIRROR_ROOT="$REPO_ROOT/docs/memory/quickshell"
 
 SITE="https://quickshell.org"
 
+# shellcheck source=../../../lib/docs-mirror.sh
+source "$REPO_ROOT/lib/docs-mirror.sh"
+
+dm_parse_args "${1:-}"
+DM_SELECT=".docs-content"
+
 # ── --path: report newest local mirror, no network ──────────────
-if [[ "$MODE" == "path" ]]; then
-  newest="$(ls -d "$MIRROR_ROOT"/*/ 2>/dev/null | sort -V | tail -n1)"
-  [[ -n "$newest" ]] || { echo "No Quickshell docs mirrored under $MIRROR_ROOT" >&2; exit 1; }
-  echo "${newest%/}"
-  exit 0
-fi
+[[ "$DM_MODE" == "path" ]] && dm_print_path_versioned "$MIRROR_ROOT" "Quickshell"
 
-for cmd in curl ketch python3; do
-  command -v "$cmd" >/dev/null 2>&1 || { echo "ERROR: '$cmd' not found on PATH." >&2; exit 1; }
-done
-
-FORCE=0
-[[ "$MODE" == "force" ]] && FORCE=1
+dm_require curl ketch python3
 
 # ── Discover latest docs version + its pages from the sitemap ───
 echo "Discovering docs versions from sitemap..."
@@ -66,17 +54,6 @@ BASE="$SITE/docs/$LATEST"
 
 PAGES="$(printf '%s\n' "$URLS" | grep -oP "(?<=$BASE/).+" | sed 's|/$||' | sort -u)"
 echo "Latest: $LATEST  ($(printf '%s\n' "$PAGES" | wc -l) pages, mirror: $DEST)"
-
-scrape_one() { # url outfile
-  local url="$1" out="$2"
-  if [[ $FORCE -eq 0 && -s "$out" ]]; then return 0; fi
-  mkdir -p "$(dirname "$out")"
-  if ketch scrape "$url" --select .docs-content --trim --max-chars 60000 > "$out" 2>/dev/null && [[ -s "$out" ]]; then
-    printf '  %-56s %7sb\n' "${out#"$DEST"/}" "$(wc -c < "$out")"
-  else
-    rm -f "$out"; echo "  FAILED: $url" >&2; return 1
-  fi
-}
 
 # ── Scrape pages ────────────────────────────────────────────────
 # URL path -> file: guide/<slug>/ -> guide/<slug>.md, types/<Module>/<Type>/
@@ -91,7 +68,7 @@ while IFS= read -r p; do
     types/*)          out="$DEST/$p/index.md" ;;
     *)                out="$DEST/$p.md" ;;
   esac
-  if scrape_one "$BASE/$p/" "$out"; then count=$((count+1)); else fail=$((fail+1)); fi
+  if dm_scrape "$BASE/$p/" "$out" "${out#"$DEST"/}"; then count=$((count+1)); else fail=$((fail+1)); fi
 done <<< "$PAGES"
 echo "Pages: $count ok / $fail failed."
 

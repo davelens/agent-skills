@@ -17,14 +17,6 @@
 
 set -euo pipefail
 
-MODE="sync"
-case "${1:-}" in
-  --force) MODE="force" ;;
-  --path)  MODE="path" ;;
-  "")      ;;
-  *) echo "Unknown argument: $1" >&2; exit 2 ;;
-esac
-
 # Resolve our own real location through any symlinks (the skill is symlinked
 # into ~/.config/agents/skills/...), so the mirror always lands in the canonical
 # repo regardless of where this script is invoked from or where the repo lives.
@@ -34,20 +26,16 @@ SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 MIRROR_ROOT="$REPO_ROOT/docs/memory/bootstrap"
 
+# shellcheck source=../../../lib/docs-mirror.sh
+source "$REPO_ROOT/lib/docs-mirror.sh"
+
+dm_parse_args "${1:-}"
+DM_SELECT="main"
+
 # ── --path: report newest local mirror, no network ──────────────
-if [[ "$MODE" == "path" ]]; then
-  newest="$(ls -d "$MIRROR_ROOT"/*/ 2>/dev/null | sort -V | tail -n1)"
-  [[ -n "$newest" ]] || { echo "No Bootstrap docs mirrored under $MIRROR_ROOT" >&2; exit 1; }
-  echo "${newest%/}"
-  exit 0
-fi
+[[ "$DM_MODE" == "path" ]] && dm_print_path_versioned "$MIRROR_ROOT" "Bootstrap"
 
-for cmd in curl ketch python3; do
-  command -v "$cmd" >/dev/null 2>&1 || { echo "ERROR: '$cmd' not found on PATH." >&2; exit 1; }
-done
-
-FORCE=0
-[[ "$MODE" == "force" ]] && FORCE=1
+dm_require curl ketch python3
 
 # ── Resolve latest release ──────────────────────────────────────
 echo "Resolving latest Bootstrap release..."
@@ -61,7 +49,7 @@ BASE="https://getbootstrap.com/docs/$DOCS_MM"
 
 echo "Latest: v$VERSION  (docs base: $BASE)"
 
-if [[ -d "$DEST" && $FORCE -eq 0 ]]; then
+if [[ -d "$DEST" && $DM_FORCE -eq 0 ]]; then
   echo "Already mirrored: $DEST"
   echo "Nothing to do. Re-run with --force to re-scrape."
   exit 0
@@ -170,18 +158,10 @@ EOF
 
 # ── Scrape ──────────────────────────────────────────────────────
 echo "Scraping into $DEST"
-mkdir -p "$DEST"
 count=0; failed=0
 while IFS= read -r p; do
   [[ -z "$p" ]] && continue
-  sec="$(dirname "$p")"; mkdir -p "$DEST/$sec"
-  out="$DEST/$p.md"
-  if [[ $FORCE -eq 0 && -s "$out" ]]; then continue; fi
-  if ketch scrape "$BASE/$p/" --select "main" --trim --max-chars 60000 > "$out" 2>/dev/null && [[ -s "$out" ]]; then
-    count=$((count+1)); printf '  %-40s %6sb\n' "$p" "$(wc -c < "$out")"
-  else
-    failed=$((failed+1)); rm -f "$out"; echo "  FAILED: $p" >&2
-  fi
+  if dm_scrape "$BASE/$p/" "$DEST/$p.md" "$p"; then count=$((count+1)); else failed=$((failed+1)); fi
 done <<< "$PAGES"
 echo "Scraped $count page(s); $failed failed."
 
