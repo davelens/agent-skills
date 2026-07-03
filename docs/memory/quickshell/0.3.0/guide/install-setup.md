@@ -1,0 +1,240 @@
+---
+url: https://quickshell.org/docs/v0.3.0/guide/install-setup/
+title: Installation & Setup
+words: 925
+---
+* * *
+
+Installation & Setup
+
+NOTE
+
+Quickshell is still in a somewhat early stage of development. There will be breaking changes before 1.0, however a migration guide will be provided.
+
+Installation
+
+Since Quickshell 0.1, you can now choose whether to install by tracking the master branch, or install by latest release.
+
+Note that you may want to install some additional packages (names vary by distro):
+
+- qtsvg: support for SVG image loading (bundled with most packages)
+- qtimageformats: support for WEBP images as well as some less common ones
+- qtmultimedia: support for playing videos, audio, etc
+- qt5compat: extra visual effects, notably gaussian blur. MultiEffect is usually preferable
+
+Nix
+
+Release versions of Quickshell are available from Nixpkgs as quickshell.
+
+The Quickshell repo also has an embedded flake which can be used from either mirror:
+
+- git+https://git.outfoxxed.me/outfoxxed/quickshell
+- github:quickshell-mirror/quickshell
+
+NOTE
+
+You can use ?ref= to specify a tag if you want a tagged release.
+
+```
+{
+  inputs = {
+    nixpkgs.url = "nixpkgs/nixos-unstable";
+
+    quickshell = {
+      # add ?ref=<tag> to track a tag
+      url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
+
+      # THIS IS IMPORTANT
+      # Mismatched system dependencies will lead to crashes and other issues.
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+}
+```
+
+The package is available as quickshell.packages.<system>.default, which can be added to your environment.systemPackages, home.packages if you use home-manager, or a devshell.
+
+When using the flake, additional QML packages can be added to Quickshell’s environment using <package>.withModules [ <extra modules> ].
+
+Arch
+
+Release versions of Quickshell are available in the Archlinux package repository as quickshell.
+
+```
+pacman -S quickshell
+```
+
+Unreleased changes on the master branch are available from the quickshell-git AUR package.
+
+WARNING
+
+When using an AUR package, Quickshell may break whenever Qt is updated. The AUR gives us no way to actually fix this, but Quickshell will attempt to warn you if it detects a breakage when updating. If warned of a breakage, please reinstall the package.
+
+Install using the command below:
+
+```
+yay -S quickshell-git
+```
+
+(or your AUR helper of choice)
+
+Fedora
+
+Release versions of Quickshell are available in Fedora Rawhide as quickshell,
+
+To install:
+
+```
+sudo dnf install quickshell
+```
+
+Fedora COPR
+
+Release and development versions of Quickshell are available from the errornointernet/quickshell COPR, as either:
+
+- quickshell that tracks the latest release
+- quickshell-git that tracks the master branch
+
+Install using the command below:
+
+```
+sudo dnf copr enable errornointernet/quickshell
+
+sudo dnf install quickshell
+# or
+sudo dnf install quickshell-git
+```
+
+Debian
+
+Quickshell is packaged in debian unstable and testing as \[quickshell].
+
+To install:
+
+```
+sudo apt install quickshell
+```
+
+OpenSUSE / Debian
+
+Quickshell is packaged on the Open Build Service in the home:AvengeMedia:danklinux repository and is available as
+
+- quickshell for the latest release - Install Instructions
+- quickshell-git for the master branch - Install Instructions
+
+Ubuntu
+
+Quickshell is packaged in the avengemedia/danklinux PPA, which provides
+
+- quickshell which tracks the latest release
+- quickshell-git which tracks the master branch
+
+To install:
+
+```
+# Add DankLinux PPA
+sudo add-apt-repository ppa:avengemedia/danklinux
+sudo apt update
+
+sudo apt install quickshell
+# OR
+sudo apt install quickshell-git
+```
+
+Gentoo
+
+Quickshell is available in GURU as gui-apps/quickshell.
+
+To install:
+
+```
+# Add GURU overlay
+emerge eselect-repository
+eselect repository enable guru
+emerge --sync guru
+
+emerge gui-apps/quickshell
+```
+
+Guix
+
+Release versions of Quickshell are available from the standard Guix repository as quickshell from the (gnu packages wm) module.
+
+Install using the command below:
+
+```
+guix install quickshell
+```
+
+You can also add quickshell to your Guix system configuration or Guix Home configuration.
+
+Manual build
+
+See BUILD.md for build instructions and configurations.
+
+Editor configuration
+
+If you want to write your own configuration, installing a QML grammar and the LSP is recommended.
+
+Read the Usage Guide after configuring your editor.
+
+Emacs
+
+Install the yuja/tree-sitter-qml tree-sitter grammar, and the xhcoding/qml-ts-mode mode.
+
+Both are packaged for nix via outfoxxed/nix-qml-support.
+
+Either lsp-mode or eglot should be usable for LSP (caveats below).
+
+The author’s personal emacs config uses lsp-mode and qml-ts-mode as follows:
+
+```
+(use-package qml-ts-mode
+  :after lsp-mode
+  :config
+  (add-to-list 'lsp-language-id-configuration '(qml-ts-mode . "qml-ts"))
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-stdio-connection '("qmlls"))
+                    :activation-fn (lsp-activate-on "qml-ts")
+                    :server-id 'qmlls))
+  (add-hook 'qml-ts-mode-hook (lambda ()
+                                (setq-local electric-indent-chars '(?\n ?\( ?\) ?{ ?} ?\[ ?\] ?\; ?,))
+                                (lsp-deferred))))
+```
+
+Neovim
+
+Neovim has built-in syntax highlighting for QML, however tree-sitter highlighting may work better than the built-in highlighting. You can install the grammar using :TSInstall qmljs.
+
+To use the language server (caveats below), install nvim-lspconfig and the following snippet to your configuration:
+
+```
+require("lspconfig").qmlls.setup {}
+```
+
+Helix
+
+Helix has built-in syntax highlighting and qmlls support.
+
+Vscode
+
+1. Install the Official QML Support extension
+2. Enable the qt-qml.qmlls.useQmlImportPathEnvVar setting. 
+
+Language Server
+
+The QML language has an associated language server, qmlls. We recommend using it, as it will catch a lot of bad practice that may make your configuration harder to maintain later.
+
+To enable language server support for your shell, create an empty file named .qmlls.ini next to the shell.qml file. Quickshell will replace it with a managed qmlls configuration. You should gitignore the .qmlls.ini file, as its content depends on information that is different on every computer.
+
+We are aware of the following issues:
+
+- Qmlls does not work well when a file is not correctly structured. This means that completions and lints won’t work unless braces are closed correctly and such.
+- The LSP cannot provide any documentation for Quickshell types.
+- PanelWindow in particular cannot be resolved.
+
+Keeping in mind the above caveats, qmlls should be able to guide you towards a more correct code should you choose to use it.
+
+Next steps
+
+Create your first configuration by reading the Intro.

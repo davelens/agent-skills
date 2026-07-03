@@ -1,0 +1,219 @@
+#!/usr/bin/env bash
+#
+# sync-quickshell-docs — mirror the Quickshell docs (quickshell.org) into
+# docs/memory/quickshell/<version>/ as clean markdown, then (re)generate
+# that version's agent navigation INDEX.md.
+#
+# The docs are versioned in the URL (docs/v0.3.0/...). The latest version
+# and its full page list are discovered live from the site's sitemap.xml on
+# every sync, so new versions and newly added type pages are picked up
+# automatically without editing this script.
+#
+# Idempotent: pages already mirrored are skipped unless --force is passed.
+#
+# Usage:
+#   sync-quickshell-docs            sync latest version, regenerate INDEX
+#   sync-quickshell-docs --force    re-scrape every page of the latest version
+#   sync-quickshell-docs --path     print the newest locally-mirrored version
+#                                   dir (no network); exit 1 if none exist
+#
+# Requires: curl, ketch, python3.
+
+set -euo pipefail
+
+MODE="sync"
+case "${1:-}" in
+  --force) MODE="force" ;;
+  --path)  MODE="path" ;;
+  "")      ;;
+  *) echo "Unknown argument: $1" >&2; exit 2 ;;
+esac
+
+# Resolve our own real location through any symlinks (the skill is symlinked
+# into ~/.config/agents/skills/...), so the mirror always lands in the canonical
+# repo regardless of where this script is invoked from or where the repo lives.
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
+# personal/quickshell/bin -> repo root is three levels up.
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+MIRROR_ROOT="$REPO_ROOT/docs/memory/quickshell"
+
+SITE="https://quickshell.org"
+
+# ── --path: report newest local mirror, no network ──────────────
+if [[ "$MODE" == "path" ]]; then
+  newest="$(ls -d "$MIRROR_ROOT"/*/ 2>/dev/null | sort -V | tail -n1)"
+  [[ -n "$newest" ]] || { echo "No Quickshell docs mirrored under $MIRROR_ROOT" >&2; exit 1; }
+  echo "${newest%/}"
+  exit 0
+fi
+
+for cmd in curl ketch python3; do
+  command -v "$cmd" >/dev/null 2>&1 || { echo "ERROR: '$cmd' not found on PATH." >&2; exit 1; }
+done
+
+FORCE=0
+[[ "$MODE" == "force" ]] && FORCE=1
+
+# ── Discover latest docs version + its pages from the sitemap ───
+echo "Discovering docs versions from sitemap..."
+URLS="$(curl -fsSL "$SITE/sitemap-0.xml" | grep -oP '(?<=<loc>)[^<]+')"
+LATEST="$(printf '%s\n' "$URLS" | grep -oP '(?<=/docs/)v[0-9]+\.[0-9]+\.[0-9]+' | sort -Vu | tail -n1)"
+[[ -n "$LATEST" ]] || { echo "ERROR: no docs versions found in sitemap." >&2; exit 1; }
+VERSION="${LATEST#v}"
+DEST="$MIRROR_ROOT/$VERSION"
+BASE="$SITE/docs/$LATEST"
+
+PAGES="$(printf '%s\n' "$URLS" | grep -oP "(?<=$BASE/).+" | sed 's|/$||' | sort -u)"
+echo "Latest: $LATEST  ($(printf '%s\n' "$PAGES" | wc -l) pages, mirror: $DEST)"
+
+scrape_one() { # url outfile
+  local url="$1" out="$2"
+  if [[ $FORCE -eq 0 && -s "$out" ]]; then return 0; fi
+  mkdir -p "$(dirname "$out")"
+  if ketch scrape "$url" --select .docs-content --trim --max-chars 60000 > "$out" 2>/dev/null && [[ -s "$out" ]]; then
+    printf '  %-56s %7sb\n' "${out#"$DEST"/}" "$(wc -c < "$out")"
+  else
+    rm -f "$out"; echo "  FAILED: $url" >&2; return 1
+  fi
+}
+
+# ── Scrape pages ────────────────────────────────────────────────
+# URL path -> file: guide/<slug>/ -> guide/<slug>.md, types/<Module>/<Type>/
+# -> types/<Module>/<Type>.md, section roots -> <section>/index.md.
+echo "Scraping into $DEST"
+count=0; fail=0
+while IFS= read -r p; do
+  [[ -z "$p" ]] && continue
+  case "$p" in
+    guide|types)      out="$DEST/$p/index.md" ;;
+    types/*/*)        out="$DEST/$p.md" ;;
+    types/*)          out="$DEST/$p/index.md" ;;
+    *)                out="$DEST/$p.md" ;;
+  esac
+  if scrape_one "$BASE/$p/" "$out"; then count=$((count+1)); else fail=$((fail+1)); fi
+done <<< "$PAGES"
+echo "Pages: $count ok / $fail failed."
+
+# ── Generate INDEX.md ───────────────────────────────────────────
+echo "Generating INDEX.md"
+DEST="$DEST" VERSION="$LATEST" python3 - <<'PY'
+import os, glob
+DEST = os.environ["DEST"]
+VERSION = os.environ["VERSION"]
+os.chdir(DEST)
+
+def read(path):
+    return open(path, encoding="utf-8").read().splitlines()
+
+def frontmatter_title(lines):
+    for l in lines[:6]:
+        if l.startswith("title: "):
+            return l[7:].strip()
+    return ""
+
+def body_after_frontmatter(lines):
+    idx = [i for i, l in enumerate(lines) if l.strip() == "---"]
+    return lines[idx[1]+1:] if len(idx) >= 2 else lines
+
+def first_prose(body, skip=()):
+    in_fence = False
+    for l in body:
+        s = l.strip()
+        if s.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence or not s or s == "* * *" or s in skip:
+            continue
+        # Admonition markers render as standalone lines; skip them.
+        if s in ("NOTE", "TIP", "CAUTION", "WARNING", "IMPORTANT"):
+            continue
+        return s
+    return ""
+
+# Guides: title + first prose line.
+guides = []
+for f in sorted(glob.glob("guide/*.md")):
+    if f.endswith("index.md"):
+        continue
+    lines = read(f)
+    title = frontmatter_title(lines)
+    desc = first_prose(body_after_frontmatter(lines), skip=(title,))
+    guides.append((title, desc, f))
+
+# Module descriptions from the types/ root listing. Lines there read
+# "<Module short name> <description>" (e.g. "Quickshell.Io Io types").
+modules = sorted(d for d in glob.glob("types/*") if os.path.isdir(d))
+module_names = [os.path.basename(m) for m in modules]
+module_desc = {}
+if os.path.exists("types/index.md"):
+    for l in body_after_frontmatter(read("types/index.md")):
+        s = l.strip()
+        for name in module_names:
+            if s.startswith(name + " "):
+                module_desc.setdefault(name, s[len(name):].strip())
+            elif s == name:
+                module_desc.setdefault(name, "")
+
+# Type descriptions from each module's own index page: the listing alternates
+# a type-name line and an optional one-line description. Type names are
+# validated against the actual mirrored files, so bare names without a
+# description never swallow the next entry.
+ntypes = 0
+sections = []
+for mdir in modules:
+    mname = os.path.basename(mdir)
+    types = sorted(os.path.basename(f)[:-3] for f in glob.glob(f"{mdir}/*.md")
+                   if not f.endswith("index.md"))
+    ntypes += len(types)
+    known = set(types)
+    desc = {}
+    current = None
+    midx = f"{mdir}/index.md"
+    if os.path.exists(midx):
+        for l in body_after_frontmatter(read(midx)):
+            s = l.strip()
+            if not s or s == "* * *":
+                continue
+            if s in known:
+                current = s
+            elif current and current not in desc:
+                desc[current] = s
+    head = f"### {mname}"
+    if module_desc.get(mname):
+        head += f" — {module_desc[mname]}"
+    lines = [head, "", f"`import {mname}` · [`{mdir}/index.md`]({mdir}/index.md)", ""]
+    for t in types:
+        line = f"- [`{t}`]({mdir}/{t}.md)"
+        if desc.get(t):
+            line += f" — {desc[t]}"
+        lines.append(line)
+    lines.append("")
+    sections.append("\n".join(lines))
+
+out = []
+out += [f"# Quickshell {VERSION} — Agent Navigation Index", "",
+ "Offline mirror of the official Quickshell docs (`quickshell.org/docs`). "
+ "Quickshell is a QtQuick/QML toolkit for building desktop shells (bars, "
+ "widgets, lockscreens, launchers) on Wayland and X11. Each type page holds "
+ "the full property/function/signal reference with types, defaults, and "
+ "examples. Read a single file per lookup. Do not guess property or signal "
+ "names — verify against the file.", "",
+ f"**Mirror root:** `docs/memory/quickshell/{VERSION.lstrip('v')}/` · "
+ f"**Source:** `quickshell.org/docs/{VERSION}` · "
+ f"{ntypes} types in {len(modules)} modules", "",
+ "## Guides", "",
+ "| Guide | File |", "|-------|------|"]
+for title, desc, f in guides:
+    label = f"{title} — {desc}" if desc else title
+    out.append(f"| {label} | [`{f}`]({f}) |")
+out += ["", "## Types by module", ""]
+out += sections
+
+open("INDEX.md", "w", encoding="utf-8").write("\n".join(out))
+print(f"  INDEX.md: {ntypes} types, {len(modules)} modules, "
+      f"{len(guides)} guides, {os.path.getsize('INDEX.md')} bytes")
+PY
+
+echo
+echo "Done: $DEST"
