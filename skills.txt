@@ -19,7 +19,9 @@ mattpocock/skills@writing-great-skills
 vercel-labs/skills@find-skills
 wshobson/agents@tailwind-design-system
 personal/add-flexible-content-type
-personal/bootstrap-5
+personal/docs-bootstrap
+personal/docs-quickshell
+personal/docs-teamleader
 personal/ketch
 personal/project-conventions
 personal/project-memory

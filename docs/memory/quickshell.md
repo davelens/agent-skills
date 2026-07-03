@@ -1,8 +1,8 @@
 # Quickshell Docs Mirror
 
 Local offline mirror of the official Quickshell docs (`quickshell.org/docs`),
-scraped to clean markdown with `ketch`. Backs the `quickshell` skill
-(`personal/quickshell/`).
+scraped to clean markdown with `ketch`. Backs the `docs-quickshell` skill
+(`personal/docs-quickshell/`).
 
 ## Versions
 

@@ -2,7 +2,7 @@
 
 Local offline mirror of the official Teamleader Focus API docs
 (`developer.focus.teamleader.eu/docs`), scraped to clean markdown with `ketch`.
-Backs the `teamleader-api` skill (`personal/teamleader-api/`).
+Backs the `docs-teamleader` skill (`personal/docs-teamleader/`).
 
 ## Layout
 

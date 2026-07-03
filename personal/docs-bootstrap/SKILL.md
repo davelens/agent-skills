@@ -1,5 +1,5 @@
 ---
-name: bootstrap-5
+name: docs-bootstrap
 description: Look up and apply Bootstrap 5.3 markup, components, utilities, forms, layout (grid/flex), and customization (Sass/CSS variables/color modes) from a local offline mirror of the official docs. Use when building or styling UI with Bootstrap, when the user says "use Bootstrap 5.3 to build X", or when a Bootstrap class, component, utility, or option needs to be looked up or verified.
 ---
 

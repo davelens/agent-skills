@@ -1,6 +1,6 @@
 # Bootstrap Docs Mirror
 
-Local offline mirror of the official Bootstrap docs, scraped to clean markdown with `ketch`. Backs the `bootstrap-5` skill (`personal/bootstrap-5/`).
+Local offline mirror of the official Bootstrap docs, scraped to clean markdown with `ketch`. Backs the `docs-bootstrap` skill (`personal/docs-bootstrap/`).
 
 ## Versions
 
