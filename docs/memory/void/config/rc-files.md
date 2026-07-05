@@ -1,0 +1,52 @@
+---
+url: https://docs.voidlinux.org/config/rc-files.html
+title: rc.conf, rc.local and rc.shutdown - The Void Linux Handbook
+words: 234
+---
+rc.conf, rc.local, rc.shutdown, and core-services
+
+The files /etc/rc.conf, /etc/rc.local, /etc/rc.shutdown, and the directory /etc/runit/core-services can be used to configure certain parts of your Void system. rc.conf is often configured by void-installer.
+
+rc.conf
+
+Sourced in runit stages 1 and 3. This file can be used to set variables, including the following:
+
+KEYMAP
+
+Specifies which keymap to use for the Linux console. Available keymaps are listed in /usr/share/kbd/keymaps. For example:
+
+```
+KEYMAP=fr
+```
+
+For further details, refer to loadkeys(1).
+
+HARDWARECLOCK
+
+Specifies whether the hardware clock is set to UTC or local time.
+
+By default this is set to utc. However, Windows sets the hardware clock to local time, so if you are dual-booting with Windows, you need to either configure Windows to use UTC, or set this variable to localtime.
+
+For further details, refer to hwclock(8).
+
+FONT
+
+Specifies which font to use for the Linux console. Available fonts are listed in /usr/share/kbd/consolefonts. For example:
+
+```
+FONT=eurlatgr
+```
+
+For further details, refer to setfont(8).
+
+rc.local
+
+Sourced in runit stage 2. A shell script which can be used to specify configuration to be done prior to login.
+
+rc.shutdown
+
+Sourced in runit stage 3. A shell script which can be used to specify tasks to be done during shutdown.
+
+core-services
+
+Sourced in runit stage 1. A directory containing shell scripts that are run in alphabetical order when the machine boots up, before services are started. Useful for startup oneshots.

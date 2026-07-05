@@ -22,6 +22,7 @@ personal/add-flexible-content-type
 personal/docs-bootstrap
 personal/docs-quickshell
 personal/docs-teamleader
+personal/docs-void
 personal/ketch
 personal/project-conventions
 personal/project-memory

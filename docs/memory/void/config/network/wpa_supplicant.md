@@ -1,0 +1,81 @@
+---
+url: https://docs.voidlinux.org/config/network/wpa_supplicant.html
+title: wpa_supplicant - The Void Linux Handbook
+words: 357
+---
+wpa\supplicant
+
+The wpasupplicant package is installed by default on the base system. It includes utilities to configure wireless interfaces and handle wireless security protocols. To use wpa\supplicant, you will need to enable the wpa\supplicant service.
+
+wpa\supplicant(8) is a daemon that manages wireless interfaces based on wpa\supplicant.conf(5) configuration files. An extensive overview of configuration options, including examples, can be found in /usr/share/examples/wpasupplicant/wpasupplicant.conf.
+
+wpa\passphrase(8) helps create pre-shared keys for use in configuration files. wpa\cli(8) provides a CLI for managing the wpa_supplicant daemon.
+
+WPA-PSK
+
+To use WPA-PSK, generate a pre-shared key with wpa\passphrase(8) and append the output to the relevant wpa_supplicant.conf file:
+
+```
+# wpa_passphrase <MYSSID> <passphrase> >> /etc/wpa_supplicant/wpa_supplicant.conf
+```
+
+WPA-EAP
+
+WPA-EAP is often used for institutional logins, notably eduroam. This does not use PSK, but a password hash can be generated like this:
+
+```
+$ echo -n <passphrase> | iconv -t utf16le | openssl md4
+```
+
+WEP
+
+For WEP configuration, add the following lines to your device's wpa_supplicant.conf:
+
+```
+network={
+    ssid="MYSSID"
+    key_mgmt=NONE
+    wep_key0="YOUR AP WEP KEY"
+    wep_tx_keyidx=0
+    auth_alg=SHARED
+}
+```
+
+WPA3-SAE
+
+SAE (used for WPA3) can be configured in wpa_supplicant.conf as follows:
+
+```
+network={
+    ssid="MYSSID"
+    key_mgmt=SAE
+    sae_password="YOUR AP PASSWORD"
+    ieee80211w=2
+}
+```
+
+The wpa\supplicant service
+
+The wpasupplicant service checks the following options in /etc/sv/wpasupplicant/conf:
+
+- OPTS: Options to be passed to the service. Overrides any other options.
+- CONFFILE: Path to file to be used for configuration. Defaults to /etc/wpasupplicant/wpa_supplicant.conf.
+- WPA_INTERFACE: Interface to be matched. May contain a wildcard; defaults to all interfaces.
+- DRIVER: Driver to use. See wpa_supplicant -h for available drivers.
+
+If no conf file is found, the service searches for the following files in /etc/wpa_supplicant:
+
+- wpa_supplicant-<interface>.conf: If found, these files are bound to the named interface.
+- wpa_supplicant.conf: If found, this file is loaded and binds to all other interfaces found.
+
+Once you are satisfied with your configuration, enable the wpa_supplicant service.
+
+Using wpa\cli
+
+When using wpacli to manage wpasupplicant from the command line, be sure to specify which network interface to use via the -i option, e.g.:
+
+```
+# wpa_cli -i wlp2s0
+```
+
+Not doing so can result in various wpacli commands (for example, scan and scanresults) not producing the expected output.

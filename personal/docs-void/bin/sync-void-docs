@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+#
+# sync-void-docs — mirror the Void Linux Handbook (docs.voidlinux.org) into
+# docs/memory/void/ as clean markdown, then (re)generate the agent navigation
+# INDEX.md.
+#
+# The handbook is an mdBook and is unversioned (a single rolling document), so
+# there is a single mirror directory. The full page list and its section
+# hierarchy are discovered live from the sidebar table of contents on the home
+# page on every sync, so newly added pages are picked up automatically without
+# editing this script.
+#
+# Idempotent: pages already mirrored are skipped unless --force is passed.
+#
+# Usage:
+#   sync-void-docs            sync missing pages, regenerate INDEX
+#   sync-void-docs --force    re-scrape every page
+#   sync-void-docs --path     print the local mirror dir (no network);
+#                             exit 1 if nothing is mirrored yet
+#
+# Requires: curl, ketch, python3.
+
+set -euo pipefail
+
+# Resolve our own real location through any symlinks (the skill is symlinked
+# into ~/.config/agents/skills/...), so the mirror always lands in the canonical
+# repo regardless of where this script is invoked from or where the repo lives.
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
+# personal/docs-void/bin -> repo root is three levels up.
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+MIRROR="$REPO_ROOT/docs/memory/void"
+
+SITE="https://docs.voidlinux.org"
+
+# shellcheck source=../../../lib/docs-mirror.sh
+source "$REPO_ROOT/lib/docs-mirror.sh"
+
+dm_parse_args "${1:-}"
+DM_SELECT="main"
+
+# ── --path: report local mirror, no network ─────────────────────
+[[ "$DM_MODE" == "path" ]] && dm_print_path_single "$MIRROR" "Void Linux Handbook"
+
+dm_require curl ketch python3
+
+# ── Discover pages + hierarchy from the mdBook sidebar TOC ───────
+# The home page embeds the whole numbered table of contents in
+# <nav id="sidebar">. Each entry gives the page href and its official section
+# title (e.g. "3.16.1. Graphics Drivers"); the dotted number encodes depth.
+echo "Discovering pages from the handbook TOC..."
+HOME_HTML="$(mktemp)"
+trap 'rm -f "$HOME_HTML"' EXIT
+curl -fsSL "$SITE/" > "$HOME_HTML"
+TOC="$(HOME_HTML="$HOME_HTML" python3 - <<'PY'
+import re, os
+html = open(os.environ["HOME_HTML"], encoding="utf-8").read()
+m = re.search(r'<nav id="sidebar".*?</nav>', html, re.S)
+nav = m.group(0) if m else html
+seen = {}
+for href, txt in re.findall(r'<a (?:rel="[^"]*" )?href="([^"]+)"[^>]*>(.*?)</a>', nav, re.S):
+    if not href.endswith('.html') or href.startswith(('http', './')):
+        continue
+    txt = re.sub('<[^>]+>', '', txt).strip()
+    if href not in seen:
+        seen[href] = txt
+for href, txt in seen.items():
+    print(f"{href}\t{txt}")
+PY
+)"
+[[ -n "$TOC" ]] || { echo "ERROR: no pages found in the handbook TOC." >&2; exit 1; }
+echo "Found $(printf '%s\n' "$TOC" | wc -l) pages."
+
+# ── Scrape pages ────────────────────────────────────────────────
+# URL path -> file: strip the .html suffix, add .md, keep the directory tree
+# (e.g. config/network/iwd.html -> config/network/iwd.md).
+echo "Scraping into $MIRROR"
+count=0; fail=0
+while IFS=$'\t' read -r href title; do
+  [[ -z "$href" ]] && continue
+  out="$MIRROR/${href%.html}.md"
+  if dm_scrape "$SITE/$href" "$out" "${out#"$MIRROR"/}"; then count=$((count+1)); else fail=$((fail+1)); fi
+done <<< "$TOC"
+echo "Pages: $count ok / $fail failed."
+
+# ── Generate INDEX.md ───────────────────────────────────────────
+echo "Generating INDEX.md"
+MIRROR="$MIRROR" TOC="$TOC" python3 - <<'PY'
+import os, re
+MIRROR = os.environ["MIRROR"]
+os.chdir(MIRROR)
+
+def read(path):
+    return open(path, encoding="utf-8").read().splitlines()
+
+def body_after_frontmatter(lines):
+    idx = [i for i, l in enumerate(lines) if l.strip() == "---"]
+    return lines[idx[1]+1:] if len(idx) >= 2 else lines
+
+def first_prose(body, title):
+    # First real sentence of the page: skip the repeated H1 title, the
+    # "Section Contents" child listing, bullet lines, and code fences.
+    in_fence = False
+    skipping_contents = False
+    for l in body:
+        s = l.strip()
+        if s.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        if s == "Section Contents":
+            skipping_contents = True
+            continue
+        if skipping_contents:
+            if s == "" or s.startswith("- "):
+                continue
+            skipping_contents = False
+        if not s or s == title or s.startswith("- "):
+            continue
+        return s
+    return ""
+
+entries = []  # (depth, number, name, href, file)
+for line in os.environ["TOC"].splitlines():
+    if not line.strip():
+        continue
+    href, title = line.split("\t", 1)
+    md = f"{href[:-5]}.md"          # strip ".html"
+    m = re.match(r'([\d.]+)\.\s*(.*)', title)
+    if m:
+        number, name = m.group(1), m.group(2)
+        depth = number.count(".")   # "3" -> 0, "3.16" -> 1, "3.16.1" -> 2
+    else:
+        number, name, depth = "", title, 0
+    desc = ""
+    if os.path.exists(md):
+        desc = first_prose(body_after_frontmatter(read(md)), name)
+    entries.append((depth, number, name, href, md, desc))
+
+out = ["# Void Linux Handbook — Agent Navigation Index", "",
+ "Offline mirror of the official Void Linux Handbook (`docs.voidlinux.org`), "
+ "the distribution's canonical documentation for installation, system "
+ "configuration, and the XBPS package manager. Void is an independent, "
+ "rolling-release distro using runit (not systemd) for service supervision "
+ "and XBPS for packaging; it ships in glibc and musl variants. Read a single "
+ "file per lookup. Do not guess a command, file path, or service name — verify "
+ "against the page.", "",
+ f"**Mirror root:** `docs/memory/void/` · **Source:** `docs.voidlinux.org` · "
+ f"{len(entries)} pages", "",
+ "## Contents", ""]
+for depth, number, name, href, md, desc in entries:
+    label = f"[{name}]({md})"
+    if desc:
+        label += f" — {desc}"
+    out.append(f"{'  ' * depth}- {label}")
+
+open("INDEX.md", "w", encoding="utf-8").write("\n".join(out) + "\n")
+print(f"  INDEX.md: {len(entries)} pages, {os.path.getsize('INDEX.md')} bytes")
+PY
+
+echo
+echo "Done: $MIRROR"

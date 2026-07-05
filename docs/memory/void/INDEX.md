@@ -1,0 +1,93 @@
+# Void Linux Handbook — Agent Navigation Index
+
+Offline mirror of the official Void Linux Handbook (`docs.voidlinux.org`), the distribution's canonical documentation for installation, system configuration, and the XBPS package manager. Void is an independent, rolling-release distro using runit (not systemd) for service supervision and XBPS for packaging; it ships in glibc and musl variants. Read a single file per lookup. Do not guess a command, file path, or service name — verify against the page.
+
+**Mirror root:** `docs/memory/void/` · **Source:** `docs.voidlinux.org` · 85 pages
+
+## Contents
+
+- [About](about/index.md) — Welcome to the Void Handbook! Please be sure to read the "About This Handbook" section to learn how to use this documentation effectively. A local copy of this handbook, in several formats, can be installed via the void-docs package and accessed with the void-docs(1) utility.
+  - [History](about/history.md) — Knowledge of the ancients, grepped from the Git logs themselves:
+  - [About This Handbook](about/about-this-handbook.md) — This handbook is not an extensive guide on how to use and configure common Linux software. The purpose of this document is to explain how to install, configure, and maintain Void Linux systems, and to highlight the differences between common Linux distributions and Void.
+  - [InfraDocs](about/infradocs.md) — InfraDocs is the meta-manual for the Void project's systems management.
+- [Installation](installation/index.md) — This section includes general information about the process of installing Void. For specific guides, see the "Advanced Installation" section.
+  - [Live Installers](installation/live-images/index.md) — Void provides live installer images containing a base set of utilities, an installer program, and package files to install a new Void system. These live images are also useful for repairing a system that is not able to boot or function properly.
+    - [Prepare Installation Media](installation/live-images/prep.md) — After downloading a live image, it must be written to bootable media, such as a USB drive, SD card, or CD/DVD.
+    - [Partitioning Notes](installation/live-images/partitions.md) — Partitioning for a modern Linux distribution is generally very simple, however the introduction of GPT and UEFI booting does bring new complexity to the process. When creating your new partition table you will need a partition for the root filesystem, along with a swap partition and possibly another partition or two to facilitate booting, if required.
+    - [Installation Guide](installation/live-images/guide.md) — Once you have downloaded a Void image to install and prepared your install media, you are ready to install Void Linux.
+  - [Advanced Installation Guides](installation/guides/index.md) — This section contains guides for more specific or complex use-cases.
+    - [Installation via chroot (x86/x86_64/aarch64)](installation/guides/chroot.md) — Installation via chroot (x86\64/i686/aarch64)
+    - [Full Disk Encryption](installation/guides/fde.md) — > Warning: Your drive's block devices and other information may be different, so make sure it is correct instead of copying and pasting directly.
+    - [Root on ZFS](installation/guides/zfs.md) — Installing Void on a ZFS Root
+    - [ARM Devices](installation/guides/arm-devices/index.md) — Void Linux provides packages and images for several ARM devices. Installing Void on such devices can be done in several ways:
+      - [Apple Silicon (Asahi)](installation/guides/arm-devices/apple-silicon.md) — Apple Silicon
+      - [Lenovo Thinkpad X13s](installation/guides/arm-devices/thinkpad-x13s.md) — Lenovo ThinkPad X13s
+      - [Pinebook Pro](installation/guides/arm-devices/pinebook-pro.md) — The Pinebook Pro is a Rockchip RK3399-based laptop.
+      - [Raspberry Pi](installation/guides/arm-devices/raspberry-pi.md) — The rpi-kernel packages for all Raspberry Pi variants are built from the Raspberry Pi Foundation's kernel tree, which should enable all special functionality that isn't available with mainline kernels. The RPi kernel packages also have their own header packages, rpi-kernel-headers. These packages should be installed if you want to use any DKMS packages. Void ships rpi-base meta-packages that install the relevant rpi-kernel and rpi-firmware packages. Together, these packages enable Wi-Fi and Bluetooth functionality.
+  - [musl](installation/musl.md) — musl is a libc implementation which strives to be lightweight, fast, simple, and correct.
+- [Configuration](config/index.md) — This section and its subsections provide information about configuring your Void system.
+  - [Package Documentation](config/package-documentation/index.md) — The most common media for documentation in Void Linux are manual pages.
+    - [Manual Pages](config/package-documentation/man.md) — Many Void packages come with manual ('man') pages. The default installation includes the mandoc manpage toolset, via the mdocml package.
+  - [Firmware](config/firmware.md) — Void provides a number of firmware packages in the repositories. Some firmware is only available if you have enabled the nonfree repository.
+  - [Locales and Translations](config/locales.md) — glibc supports setting the system locale whereas musl does not; both support setting the language for applications.
+  - [Users and Groups](config/users-and-groups.md) — The useradd(8), userdel(8) and usermod(8) commands are used to add, delete and modify users respectively. The passwd(1) command is used to change passwords.
+  - [Services and Daemons - runit](config/services/index.md) — Void uses the runit(8) supervision suite to run system services and daemons.
+    - [Per-User Services](config/services/user-services.md) — Sometimes it can be nice to have user-specific runit services. For example, you might want to open an ssh tunnel as the current user, run a virtual machine, or regularly run daemons on your behalf.
+    - [Logging](config/services/logging.md) — Syslog
+  - [rc.conf, rc.local and rc.shutdown](config/rc-files.md) — rc.conf, rc.local, rc.shutdown, and core-services
+  - [Cron](config/cron.md) — cron is a daemon for running programs at regular intervals. The programs and intervals are specified in a crontab file, which can be edited with crontab(1). Running crontab -e as the superuser will edit the system crontab; otherwise, it will edit the crontab for the current user.
+  - [Solid State Drives](config/ssd.md) — Post installation, you will need to enable TRIM for solid state drives. You can check which devices allow TRIM by running:
+  - [Security](config/security/index.md) — There are several ways you can make your installation more secure. This section explores some of them.
+    - [AppArmor](config/security/apparmor.md) — AppArmor is a mandatory access control mechanism (like SELinux). It can constrain programs based on pre-defined or generated policy definitions.
+  - [Date and Time](config/date-time.md) — To view your system's current date and time information, as well as make direct changes to it, use date(1).
+  - [Kernel](config/kernel.md) — Kernel series
+  - [Power Management](config/power-management.md) — acpid
+  - [Network](config/network/index.md) — Network configuration in Void Linux can be done in several ways. The default installation comes with the dhcpcd(8) service enabled.
+    - [Firewalls](config/network/firewalls.md) — iptables
+    - [wpa_supplicant](config/network/wpa_supplicant.md) — wpa\supplicant
+    - [IWD](config/network/iwd.md) — IWD (iNet Wireless Daemon) is a wireless daemon for Linux that aims to replace WPA supplicant.
+    - [NetworkManager](config/network/networkmanager.md) — NetworkManager(8) is a daemon that manages Ethernet, Wi-Fi, and mobile broadband network connections. Install the NetworkManager package for the basic NetworkManager utilities.
+    - [ConnMan](config/network/connman.md) — ConnMan(8) is a daemon that manages network connections, is designed to be slim and to use as few resources as possible. The connman package contains the basic utilities to run ConnMan.
+  - [Network Filesystems](config/network-filesystems.md) — NFS
+  - [Session and Seat Management](config/session-management.md) — Session and seat management is not necessary for every setup, but it can be used to safely create temporary runtime directories, provide access to hardware devices and multi-seat capabilities, and control system shutdown.
+  - [Graphical Session](config/graphical-session/index.md) — In order to configure a graphical session, you need:
+    - [Graphics Drivers](config/graphical-session/graphics-drivers/index.md) — This section covers basic graphics setup depending on the hardware configuration of your system.
+      - [AMD or ATI](config/graphical-session/graphics-drivers/amd.md) — AMD GPU support requires the linux-firmware-amd package. If you have installed the linux or linux-lts packages, it will be installed as a dependency. If you installed a version-specific kernel package (e.g., linux5.4), it may be necessary to manually install linux-firmware-amd.
+      - [Intel](config/graphical-session/graphics-drivers/intel.md) — Intel GPU support requires the linux-firmware-intel package. If you have installed the linux or linux-lts packages, it will be installed as a dependency. If you installed a version-specific kernel package (e.g., linux5.4), it may be necessary to manually install linux-firmware-intel.
+      - [NVIDIA](config/graphical-session/graphics-drivers/nvidia.md) — nouveau (Kernel-Provided Driver)
+      - [NVIDIA Optimus](config/graphical-session/graphics-drivers/optimus.md) — NVIDIA Optimus refers to a dual graphics configuration found on laptops consisting of an Intel integrated GPU and a discrete NVIDIA GPU.
+    - [Xorg](config/graphical-session/xorg.md) — This section details the manual installation and configuration of the Xorg display server and common related services and utilities. If you would just like to install a full desktop environment, it is recommended to try the xfce image.
+    - [Wayland](config/graphical-session/wayland.md) — This section details the manual installation and configuration of Wayland compositors and related services and utilities.
+    - [Fonts](config/graphical-session/fonts.md) — A number of fonts and font collections are available from XBPS. dejavu-fonts-ttf or xorg-fonts are a good baseline if you're unsure of what to pick. noto-fonts-ttf contains fonts for many languages and scripts. noto-fonts-cjk extends this with fonts for Chinese, Japanese, and Korean, and noto-fonts-emoji provides emojis. nerd-fonts provides a number of fonts with special characters like custom icons included.
+    - [Icons](config/graphical-session/icons.md) — GTK
+    - [XDG Desktop Portals](config/graphical-session/portals.md) — Some applications, including Flatpak, use XDG Desktop Portals to provide access to various system interfaces, including file open and save dialogs, the clipboard, screencasting, opening URLs, and more.
+    - [GNOME](config/graphical-session/gnome.md) — Pre-installation
+    - [KDE](config/graphical-session/kde.md) — Installation
+  - [Multimedia](config/media/index.md) — Audio setup
+    - [ALSA](config/media/alsa.md) — To use ALSA, install the alsa-utils package and make sure your user is a member of the audio group.
+    - [PipeWire](config/media/pipewire.md) — PipeWire is a modern server for handling audio (and video) streams. It is highly flexible and can interface with applications designed for ALSA, PulseAudio, and JACK audio systems. It is also designed to work well with Flatpak applications and provides a method for screenshotting and screensharing on Wayland via xdg-desktop-portal.
+    - [PulseAudio](config/media/pulseaudio.md) — Depending on which applications you use, you might need to provide PulseAudio with a D-BUS session bus (e.g. via dbus-run-session) or a D-BUS system bus (via the dbus service).
+  - [Bluetooth](config/bluetooth.md) — Ensure the Bluetooth controller is not blocked. Use rfkill to check whether there are any blocks and to remove soft blocks. If there is a hard block, there is likely either a physical hardware switch or an option in the BIOS to enable the Bluetooth controller.
+  - [TeX Live](config/texlive.md) — In Void, the texlive-bin package provides a basic TeX installation, including the tlmgr program. Use tlmgr to install TeX packages and package collections from CTAN mirrors. Install the gnupg package to allow tlmgr to verify TeX packages.
+  - [External Applications](config/external-applications.md) — Programming Languages
+  - [Printing](config/print/index.md) — CUPS (Common Unix Printing System) is the supported mechanism for connecting to printers on Void Linux.
+  - [Containers and Virtual Machines](config/containers-and-vms/index.md) — This section describes how to set up some of the container and virtual machine software available on Void.
+    - [Chroots and Containers](config/containers-and-vms/chroot.md) — Creating and using chroots and containers
+    - [libvirt](config/containers-and-vms/libvirt.md) — libvirt is an API and daemon for managing platform virtualization, supporting virtualization technologies such as LXC, KVM, QEMU, Bhyve, Xen, VMWare, and Hyper-V.
+    - [LXC](config/containers-and-vms/lxc.md) — The Linux Containers project includes four subprojects: Incus, LXC, LXCFS and distrobuilder.
+  - [OpenPGP](config/openpgp.md) — GnuPG
+  - [PHP](config/php.md) — There are two ways to install PHP packages with XBPS:
+- [XBPS Package Manager](xbps/index.md) — The X Binary Package System (XBPS) is a fast package manager that has been designed and implemented from scratch. XBPS is managed by the Void Linux team and developed at https://github.com/void-linux/xbps.
+  - [Advanced Usage](xbps/advanced-usage.md) — Downgrading
+  - [Repositories](xbps/repositories/index.md) — Repositories are the heart of the XBPS package system. Repositories can be local or remote. A repository contains binary package files, which may have signatures, and a data file named $ARCH-repodata (e.g. x86_64-repodata), which may also be signed.
+    - [Mirrors](xbps/repositories/mirrors/index.md) — Void Linux maintains mirrors in several geographic regions for users. A fresh install will default to repo-default.voidlinux.org, which may map to any Tier 1 mirror, but you may have a better experience by selecting a different mirror.
+      - [Changing Mirrors](xbps/repositories/mirrors/changing.md) — Each repository has a file defining the URL for the mirror used. For official repositories, these files are installed by the package manager in /usr/share/xbps.d, but if duplicate files are found in /etc/xbps.d, those values are used instead.
+      - [Using Tor Mirrors](xbps/repositories/mirrors/tor.md) — Tor is an anonymizing software that bounces traffic via computers all around the world. It can provide access to regular sites on the internet or to hidden sites only available on the network.
+    - [Restricted Packages](xbps/repositories/restricted.md) — Void offers some packages that are officially maintained, but not distributed. These packages are marked as restricted and must be built from their void-packages template locally.
+    - [Custom Repositories](xbps/repositories/custom.md) — Void supports user-created repositories, both local and remote. This is only recommended for serving custom packages created personally, or packages from another trusted source. The Void project does not support any third-party package repositories - the use of third-party software packages poses very serious security concerns, and risks serious damage your system.
+    - [Signing Repositories](xbps/repositories/signing.md) — Remote repositories must be signed. Local repositories do not need to be signed.
+  - [Troubleshooting XBPS](xbps/troubleshooting/index.md) — Sometimes the package manager gets in a weird spot and can't fix itself without help. This section documents important fixes and things that can go wrong when working with XBPS.
+    - [Common Issues](xbps/troubleshooting/common-issues.md) — Verifying RSA keys
+    - [Static XBPS](xbps/troubleshooting/static.md) — In rare cases, it is possible to break the system sufficiently that XBPS can no longer function. This usually happens while trying to do unsupported things with libc, but can also happen when an update contains a corrupt glibc archive or otherwise fails to unpack and configure fully.
+- [Contributing](contributing/index.md) — There's more to running a distribution than just writing code.
+  - [Contributing To void-docs](contributing/void-docs/index.md) — The sources for this handbook are hosted in the void-docs repository on GitHub. If you would like to make a contribution, please read about the purpose of the Handbook, follow our style guide and submit a pull request.
