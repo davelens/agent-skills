@@ -9,6 +9,7 @@ mattpocock/skills@diagnosing-bugs
 mattpocock/skills@domain-modeling
 mattpocock/skills@grill-me
 mattpocock/skills@grill-with-docs
+mattpocock/skills@grilling
 mattpocock/skills@handoff
 mattpocock/skills@improve-codebase-architecture
 mattpocock/skills@prototype
