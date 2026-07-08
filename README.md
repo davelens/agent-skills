@@ -61,8 +61,9 @@ such as `personal/project-memory`.
 | `skills update` | Update pinned skills against the lockfile.        |
 | `skills reset`  | Wipe `~/.config/agents/skills` and the lockfile.  |
 
-`list` and `update` work around `npx skills`' hardcoded `~/.agents/skills`
-path by temporarily symlinking through an XDG-friendly location.
+All three dispatch to `setup.sh` so paths (skills dir, lockfile) are
+defined once. `list` temporarily symlinks the central dir into an
+OpenCode-shaped location so `npx skills list` tags OpenCode in its output.
 
 ## Adding a personal skill
 

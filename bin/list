@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-# I detest having dot folders in my $HOME and try to leverage XDG wherever I
-# can. Because `npx skills` always installs global skills in ~/.agents/skills
-# without a means to override that target path, I have to resort to this
-# fuckery to get the behaviour I want.
+# Resolve through symlinks: this script is symlinked into the dotfiles
+# utilities dir, so the repo's setup.sh lives one level up from the real path.
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
 
-ln -s ~/.config/agents/skills ~/.config/opencode/
-npx skills list -g
-rm -rf ~/.config/opencode/skills
+exec "$SCRIPT_DIR/../setup.sh" list "$@"

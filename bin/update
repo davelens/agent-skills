@@ -1,1 +1,9 @@
-../setup.sh
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Resolve through symlinks: this script is symlinked into the dotfiles
+# utilities dir, so the repo's setup.sh lives one level up from the real path.
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
+
+exec "$SCRIPT_DIR/../setup.sh" update "$@"
