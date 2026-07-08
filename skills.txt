@@ -11,6 +11,7 @@ mattpocock/skills@grill-me
 mattpocock/skills@grill-with-docs
 mattpocock/skills@grilling
 mattpocock/skills@handoff
+mattpocock/skills@implement
 mattpocock/skills@improve-codebase-architecture
 mattpocock/skills@prototype
 mattpocock/skills@setup-matt-pocock-skills
