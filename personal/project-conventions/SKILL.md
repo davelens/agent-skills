@@ -44,3 +44,8 @@ live in the owning skill, not here.
   - Check recent suspicious releases
   - Verify package integrity/signature/checksum when available
   - Ask user if provenance is unclear
+
+## Database
+
+- New columns go before `created_at`/`updated_at`
+- Group new columns by type (datetimes, dates, booleans, ...)
