@@ -8,6 +8,9 @@ Everything installs to `~/.config/agents/skills` (XDG-respecting). Each
 agent reads from its own symlinked view under that directory, so installed
 skills stay centralized while visibility stays agent-specific.
 
+I'm a big fan of Matt Pocock's approach to agentic coding, so a subset of his
+skills are represented here.
+
 ## Layout
 
 | Path                  | Purpose                                                         |
@@ -64,6 +67,16 @@ such as `personal/project-memory`.
 All three dispatch to `setup.sh` so paths (skills dir, lockfile) are
 defined once. `list` temporarily symlinks the central dir into an
 OpenCode-shaped location so `npx skills list` tags OpenCode in its output.
+
+## Intended workflow for development tasks
+
+The default should be how Matt Pocock explains it:
+
+1. `grill-with-docs` or `wayfinder` to determine scope and requirements
+2. `to-spec` to save made decisions 
+3. `to-tickets` to convert decisions into todos
+4. `implement` to start work
+5. `code-review` to match the work against the spec, or catch any bugs
 
 ## Adding a personal skill
 

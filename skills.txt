@@ -5,6 +5,7 @@ github/awesome-copilot@web-design-reviewer
 JuliusBrussee/skills@caveman
 mattpocock/skills@ask-matt
 mattpocock/skills@codebase-design
+mattpocock/skills@code-review
 mattpocock/skills@diagnosing-bugs
 mattpocock/skills@domain-modeling
 mattpocock/skills@grill-me
@@ -17,6 +18,9 @@ mattpocock/skills@prototype
 mattpocock/skills@setup-matt-pocock-skills
 mattpocock/skills@tdd
 mattpocock/skills@teach
+mattpocock/skills@to-spec
+mattpocock/skills@to-tickets
+mattpocock/skills@wayfinder
 mattpocock/skills@writing-great-skills
 vercel-labs/skills@find-skills
 wshobson/agents@tailwind-design-system
