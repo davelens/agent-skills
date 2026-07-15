@@ -27,6 +27,7 @@ wshobson/agents@tailwind-design-system
 personal/add-flexible-content-type
 personal/brief-pipeline
 personal/docs-bootstrap
+personal/docs-quill
 personal/docs-quickshell
 personal/docs-teamleader
 personal/docs-void

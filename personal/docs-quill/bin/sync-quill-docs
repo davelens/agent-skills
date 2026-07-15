@@ -1,0 +1,190 @@
+#!/usr/bin/env bash
+#
+# sync-quill-docs — mirror the latest Quill docs (quilljs.com) into
+# docs/memory/quill/<version>/ as clean markdown, then (re)generate that
+# version's agent navigation INDEX.md.
+#
+# The latest stable version comes from GitHub releases. The page list comes
+# from the matching release tag's website content tree, so new docs pages are
+# discovered without editing this script.
+#
+# Idempotent: pages already mirrored are skipped unless --force is passed.
+#
+# Usage:
+#   sync-quill-docs            sync latest version, regenerate INDEX
+#   sync-quill-docs --force    re-scrape every page of the latest version
+#   sync-quill-docs --path     print the newest locally-mirrored version dir
+#                             (no network); exit 1 if none exist
+#
+# Requires: curl, ketch, python3.
+
+set -euo pipefail
+
+# Resolve through skill symlinks so the mirror always lands in this repo.
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
+# personal/docs-quill/bin -> repo root is three levels up.
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+MIRROR_ROOT="$REPO_ROOT/docs/memory/quill"
+
+SITE="https://quilljs.com"
+REPO="slab/quill"
+DOCS_PREFIX="packages/website/content/docs/"
+
+# shellcheck source=../../../lib/docs-mirror.sh
+source "$REPO_ROOT/lib/docs-mirror.sh"
+
+dm_parse_args "${1:-}"
+DM_SELECT="article"
+
+# ── --path: report newest local mirror, no network ──────────────
+[[ "$DM_MODE" == "path" ]] && dm_print_path_versioned "$MIRROR_ROOT" "Quill"
+
+dm_require curl ketch python3 sed
+
+# ── Resolve latest stable release and discover its docs pages ───
+echo "Resolving latest Quill release..."
+RELEASE_JSON="$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest")"
+TAG="$(printf '%s' "$RELEASE_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("tag_name", ""))')"
+[[ -n "$TAG" ]] || { echo "ERROR: could not resolve latest Quill version." >&2; exit 1; }
+VERSION="${TAG#v}"
+DEST="$MIRROR_ROOT/$VERSION"
+
+echo "Discovering docs pages from $REPO@$TAG..."
+TREE_JSON="$(curl -fsSL "https://api.github.com/repos/$REPO/git/trees/$TAG?recursive=1")"
+PAGES="$(printf '%s' "$TREE_JSON" | DOCS_PREFIX="$DOCS_PREFIX" python3 -c '
+import json, os, sys
+prefix = os.environ["DOCS_PREFIX"]
+for item in json.load(sys.stdin).get("tree", []):
+    path = item.get("path", "")
+    if path.startswith(prefix) and path.endswith(".mdx"):
+        print(path[len(prefix):-4])
+')"
+[[ -n "$PAGES" ]] || { echo "ERROR: no Quill docs pages found at $TAG." >&2; exit 1; }
+echo "Latest: $TAG  ($(printf '%s\n' "$PAGES" | wc -l) pages, mirror: $DEST)"
+
+# ── Scrape pages ────────────────────────────────────────────────
+echo "Scraping into $DEST"
+count=0; fail=0
+while IFS= read -r page; do
+  [[ -z "$page" ]] && continue
+  out="$DEST/$page.md"
+  if dm_scrape "$SITE/docs/$page/" "$out" "$page"; then
+    # Scraped code examples can contain whitespace-only blank lines. Keep
+    # mirrored markdown compliant with repository whitespace conventions.
+    sed -i 's/[[:space:]]\+$//' "$out"
+    count=$((count+1))
+  else
+    fail=$((fail+1))
+  fi
+done <<< "$PAGES"
+echo "Pages: $count ok / $fail failed."
+
+# ── Generate INDEX.md ───────────────────────────────────────────
+echo "Generating INDEX.md"
+DEST="$DEST" VERSION="$VERSION" python3 - <<'PY'
+import glob
+import os
+import re
+
+DEST = os.environ["DEST"]
+VERSION = os.environ["VERSION"]
+os.chdir(DEST)
+
+SECTION_ORDER = ["Start", "Core reference", "Modules", "Customization", "Guides"]
+
+
+def read(path):
+    return open(path, encoding="utf-8").read().splitlines()
+
+
+def frontmatter_title(lines):
+    for line in lines[:8]:
+        if line.startswith("title: "):
+            return line[7:].split(" - Quill Rich Text Editor")[0].strip()
+    return ""
+
+
+def body_after_frontmatter(lines):
+    marks = [i for i, line in enumerate(lines) if line.strip() == "---"]
+    return lines[marks[1] + 1:] if len(marks) >= 2 else lines
+
+
+def first_prose(lines, title):
+    in_fence = False
+    for line in lines:
+        text = line.strip()
+        if text.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence or not text or text == title or text.startswith("[](#"):
+            continue
+        if text.startswith("- ") or re.fullmatch(r"[A-Za-z ]+", text) and len(text.split()) <= 3:
+            continue
+        return text
+    return ""
+
+
+def section(path):
+    if path == "modules.md" or path.startswith("modules/"):
+        return "Modules"
+    if path == "customization.md" or path.startswith("customization/"):
+        return "Customization"
+    if path.startswith("guides/"):
+        return "Guides"
+    if path in ("quickstart.md", "why-quill.md", "installation.md", "upgrading-to-2-0.md"):
+        return "Start"
+    return "Core reference"
+
+
+entries = {name: [] for name in SECTION_ORDER}
+for path in sorted(glob.glob("**/*.md", recursive=True)):
+    if path == "INDEX.md":
+        continue
+    lines = read(path)
+    title = frontmatter_title(lines) or os.path.basename(path)[:-3].replace("-", " ").title()
+    description = first_prose(body_after_frontmatter(lines), title)
+    entries[section(path)].append((title, description, path))
+
+count = sum(len(items) for items in entries.values())
+out = [
+    f"# Quill {VERSION} — Agent Navigation Index",
+    "",
+    "Offline mirror of the official Quill rich-text editor docs (`quilljs.com/docs`). "
+    "Read the smallest relevant file and verify method signatures, Delta shapes, "
+    "module options, format names, and extension APIs instead of guessing.",
+    "",
+    f"**Mirror root:** `docs/memory/quill/{VERSION}/` · "
+    f"**Source:** `quilljs.com/docs` · {count} pages",
+    "",
+    "## Quick routing",
+    "",
+    "| Need | File(s) |",
+    "|------|---------|",
+    "| Initialize or install Quill | `quickstart.md`, `installation.md`, `configuration.md` |",
+    "| Read, write, format, select, or listen for changes | `api.md` |",
+    "| Understand or construct Delta data | `delta.md`, `guides/designing-the-delta-format.md` |",
+    "| Supported built-in formats | `formats.md` |",
+    "| Configure toolbar, keyboard, history, clipboard, or syntax | `modules/*.md` |",
+    "| Add custom behavior | `guides/building-a-custom-module.md` |",
+    "| Add custom blots/formats with Parchment | `guides/cloning-medium-with-parchment.md` |",
+    "| Style or isolate editors | `customization/themes.md`, `customization/registries.md` |",
+    "| Migrate from Quill 1.3 | `upgrading-to-2-0.md` |",
+    "",
+]
+for name in SECTION_ORDER:
+    out += [f"## {name}", ""]
+    for title, description, path in entries[name]:
+        line = f"- [`{path}`]({path}) — **{title}**"
+        if description:
+            line += f": {description}"
+        out.append(line)
+    out.append("")
+
+open("INDEX.md", "w", encoding="utf-8").write("\n".join(out))
+print(f"  INDEX.md: {count} pages, {os.path.getsize('INDEX.md')} bytes")
+PY
+
+echo
+echo "Done: $DEST"
+echo "Remember to add a version row to docs/memory/quill.md if this is a new version."
