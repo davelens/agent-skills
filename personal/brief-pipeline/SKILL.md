@@ -27,17 +27,19 @@ Skip only when the brief or user pre-authorises it: "no gate", "just build it", 
 
 ## Routing
 
-Each phase pins model **and** thinking through the `:level` suffix on the model string; no separate thinking parameter exists (`model: "claude-bridge/claude-fable-5:high"`). Levels: `off, minimal, low, medium, high, xhigh`.
+Each phase pins model **and** thinking through the `:level` suffix on the model string; no separate thinking parameter exists (`model: "openai-codex/gpt-5.6-sol:high"`). Levels: `off, minimal, low, medium, high, xhigh`. Always use `openai-codex` for GPT models, never `openai`.
 
 Honour a tier named in the brief; otherwise infer it:
 
 | Tier | When | scout | planner | worker |
 |------|------|-------|---------|--------|
-| `simple` | small, local, low-risk edits | `claude-bridge/claude-sonnet-5:low` | `openai-codex/gpt-5.5:medium` | `claude-bridge/claude-sonnet-5:medium` |
-| `default` | normal feature work | `claude-bridge/claude-sonnet-5:medium` | `openai-codex/gpt-5.5:high` | `claude-bridge/claude-opus-4-8:high` |
-| `dangerous` | refactors, migrations, concurrency, security-sensitive code | `claude-bridge/claude-fable-5:medium` | `claude-bridge/claude-opus-4-8:high` | `claude-bridge/claude-fable-5:high` |
+| `simple` | small, local, low-risk edits | `openai-codex/gpt-5.6-luna:low` | `openai-codex/gpt-5.6-terra:medium` | `claude-bridge/claude-sonnet-5:medium` |
+| `default` | normal feature work | `claude-bridge/claude-sonnet-5:medium` | `openai-codex/gpt-5.6-sol:high` | `claude-bridge/claude-fable-5:high` |
+| `dangerous` | refactors, migrations, concurrency, security-sensitive code | `openai-codex/gpt-5.6-sol:medium` | `claude-bridge/claude-fable-5:xhigh` | `claude-bridge/claude-fable-5:xhigh` |
 
-A brief may override any cell explicitly (e.g. "worker: opus high", or a routing block naming model + level per phase); explicit brief directive wins. When silent, use `default`. When two tiers seem plausible, pick the higher.
+Routing rationale: Luna/Terra/Sonnet minimize spend on bounded work; Sonnet and Sol add stronger exploration and planning for normal work; Fable owns repository implementation and highest-risk planning because its SWE-bench Pro and long-horizon reliability are stronger, while Sol remains preferred for coding-oriented planning and tool-heavy reconnaissance.
+
+A brief may override any cell explicitly (e.g. "worker: fable high", or a routing block naming model + level per phase); explicit brief directive wins. When silent, use `default`. When two tiers seem plausible, pick the higher.
 
 ## Notes
 
