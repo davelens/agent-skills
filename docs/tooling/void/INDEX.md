@@ -2,7 +2,7 @@
 
 Offline mirror of the official Void Linux Handbook (`docs.voidlinux.org`), the distribution's canonical documentation for installation, system configuration, and the XBPS package manager. Void is an independent, rolling-release distro using runit (not systemd) for service supervision and XBPS for packaging; it ships in glibc and musl variants. Read a single file per lookup. Do not guess a command, file path, or service name — verify against the page.
 
-**Mirror root:** `docs/memory/void/` · **Source:** `docs.voidlinux.org` · 85 pages
+**Mirror root:** `docs/tooling/void/` · **Source:** `docs.voidlinux.org` · 85 pages
 
 ## Contents
 

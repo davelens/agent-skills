@@ -8,7 +8,7 @@ Local offline mirror of the official Quill rich-text editor docs
 
 | Version | Path | Pages |
 |---------|------|-------|
-| 2.0.3 (latest) | `docs/memory/quill/2.0.3/` | 20 |
+| 2.0.3 (latest) | `docs/tooling/quill/2.0.3/` | 20 |
 
 Read a version's `INDEX.md` first. It routes common needs and lists all pages
 grouped as start, core reference, modules, customization, and guides.

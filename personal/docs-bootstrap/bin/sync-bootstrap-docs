@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # sync-bootstrap-docs — mirror the latest Bootstrap 5.3 docs into
-# docs/memory/bootstrap/<version>/ as clean markdown, then (re)generate
+# docs/tooling/bootstrap/<version>/ as clean markdown, then (re)generate
 # that version's agent navigation INDEX.md.
 #
 # Idempotent: resolves the latest release, and if its version folder already
@@ -24,7 +24,7 @@ SELF="$(readlink -f "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
 # personal/docs-bootstrap/bin -> repo root is three levels up.
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-MIRROR_ROOT="$REPO_ROOT/docs/memory/bootstrap"
+MIRROR_ROOT="$REPO_ROOT/docs/tooling/bootstrap"
 
 # shellcheck source=../../../lib/docs-mirror.sh
 source "$REPO_ROOT/lib/docs-mirror.sh"
@@ -205,7 +205,7 @@ def parse(path):
 npages=len(glob.glob("*/*.md"))
 out=[f"# Bootstrap {VERSION} — Agent Navigation Index","",
  "Offline mirror of the official Bootstrap docs. Each entry: file path, page title, one-line purpose, and its top-level sections (page anchors). Read a single file for full markup, class names, and `data-bs-*` attributes for that topic. Do not guess class names — verify against the file.","",
- f"**Mirror root:** `docs/memory/bootstrap/{VERSION}/` · **Source:** `getbootstrap.com/docs/{'.'.join(VERSION.split('.')[:2])}` · {npages} pages","",
+ f"**Mirror root:** `docs/tooling/bootstrap/{VERSION}/` · **Source:** `getbootstrap.com/docs/{'.'.join(VERSION.split('.')[:2])}` · {npages} pages","",
  "## Quick routing","",
  "| Need | File(s) |","|------|------|",
  "| Responsive columns / grid | `layout/grid.md`, `layout/columns.md`, `layout/gutters.md` |",
@@ -233,4 +233,4 @@ PY
 
 echo
 echo "Done: $DEST"
-echo "Remember to add a version row to docs/memory/bootstrap.md if this is a new version."
+echo "Remember to add a version row to docs/tooling/bootstrap.md if this is a new version."

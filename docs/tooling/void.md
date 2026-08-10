@@ -8,7 +8,7 @@ scraped to clean markdown with `ketch`. Backs the `docs-void` skill
 
 | Path | Pages |
 |------|-------|
-| `docs/memory/void/` | 85 |
+| `docs/tooling/void/` | 85 |
 
 The handbook is an **mdBook** and is **unversioned** (a single rolling
 document), so there is one mirror directory. Read `INDEX.md` first — it

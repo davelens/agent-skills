@@ -27,7 +27,7 @@ e.g. `"$SKILL_DIR/bin/sync-void-docs"`.
    ```
    MIRROR="$("$SKILL_DIR/bin/sync-void-docs" --path)"
    ```
-   Prints the mirror dir (`.../docs/memory/void`), or exits non-zero if nothing
+   Prints the mirror dir (`.../docs/tooling/void`), or exits non-zero if nothing
    is mirrored yet.
 2. **If that failed** (docs absent) **or you want a refresh**, run it with no
    args to sync — it discovers the current page list and section hierarchy live

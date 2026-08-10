@@ -2,7 +2,7 @@
 
 Offline mirror of the official Quickshell docs (`quickshell.org/docs`). Quickshell is a QtQuick/QML toolkit for building desktop shells (bars, widgets, lockscreens, launchers) on Wayland and X11. Each type page holds the full property/function/signal reference with types, defaults, and examples. Read a single file per lookup. Do not guess property or signal names — verify against the file.
 
-**Mirror root:** `docs/memory/quickshell/0.3.0/` · **Source:** `quickshell.org/docs/v0.3.0` · 148 types in 18 modules
+**Mirror root:** `docs/tooling/quickshell/0.3.0/` · **Source:** `quickshell.org/docs/v0.3.0` · 148 types in 18 modules
 
 ## Guides
 

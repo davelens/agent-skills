@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # sync-teamleader-docs — mirror the Teamleader Focus API docs
-# (developer.focus.teamleader.eu) into docs/memory/teamleader/ as clean
+# (developer.focus.teamleader.eu) into docs/tooling/teamleader/ as clean
 # markdown, then (re)generate the agent navigation INDEX.md.
 #
 # The docs are unversioned (the API itself is versioned through the
@@ -29,7 +29,7 @@ SELF="$(readlink -f "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
 # personal/docs-teamleader/bin -> repo root is three levels up.
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-MIRROR="$REPO_ROOT/docs/memory/teamleader"
+MIRROR="$REPO_ROOT/docs/tooling/teamleader"
 
 SITE="https://developer.focus.teamleader.eu"
 API_BASE="$SITE/docs/api"
@@ -195,7 +195,7 @@ out += ["# Teamleader Focus API — Agent Navigation Index", "",
  "with a JSON body. Read a single file for the full request body schema, "
  "field types, possible values, includes, and a JSON example. Do not guess "
  "field names or filters — verify against the file.", "",
- f"**Mirror root:** `docs/memory/teamleader/` · **Source:** `developer.focus.teamleader.eu/docs` · {napi} API pages", "",
+ f"**Mirror root:** `docs/tooling/teamleader/` · **Source:** `developer.focus.teamleader.eu/docs` · {napi} API pages", "",
  "## Start here (guides)", "",
  "| Guide | File |", "|-------|------|"]
 for title, desc, f in guides:

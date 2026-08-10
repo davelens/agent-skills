@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # sync-quill-docs — mirror the latest Quill docs (quilljs.com) into
-# docs/memory/quill/<version>/ as clean markdown, then (re)generate that
+# docs/tooling/quill/<version>/ as clean markdown, then (re)generate that
 # version's agent navigation INDEX.md.
 #
 # The latest stable version comes from GitHub releases. The page list comes
@@ -25,7 +25,7 @@ SELF="$(readlink -f "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
 # personal/docs-quill/bin -> repo root is three levels up.
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-MIRROR_ROOT="$REPO_ROOT/docs/memory/quill"
+MIRROR_ROOT="$REPO_ROOT/docs/tooling/quill"
 
 SITE="https://quilljs.com"
 REPO="slab/quill"
@@ -154,7 +154,7 @@ out = [
     "Read the smallest relevant file and verify method signatures, Delta shapes, "
     "module options, format names, and extension APIs instead of guessing.",
     "",
-    f"**Mirror root:** `docs/memory/quill/{VERSION}/` · "
+    f"**Mirror root:** `docs/tooling/quill/{VERSION}/` · "
     f"**Source:** `quilljs.com/docs` · {count} pages",
     "",
     "## Quick routing",
@@ -187,4 +187,4 @@ PY
 
 echo
 echo "Done: $DEST"
-echo "Remember to add a version row to docs/memory/quill.md if this is a new version."
+echo "Remember to add a version row to docs/tooling/quill.md if this is a new version."

@@ -31,7 +31,7 @@ header), e.g. `"$SKILL_DIR/bin/sync-teamleader-docs"`.
    ```
    MIRROR="$("$SKILL_DIR/bin/sync-teamleader-docs" --path)"
    ```
-   Prints the mirror dir (`.../docs/memory/teamleader`), or exits non-zero if
+   Prints the mirror dir (`.../docs/tooling/teamleader`), or exits non-zero if
    nothing is mirrored yet.
 2. **If that failed** (docs absent) **or you want a refresh**, run it with no
    args to sync — it discovers the current endpoint list live from the site's

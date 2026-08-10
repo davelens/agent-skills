@@ -8,7 +8,7 @@ scraped to clean markdown with `ketch`. Backs the `docs-quickshell` skill
 
 | Version | Path | Pages |
 |---------|------|-------|
-| 0.3.0 (latest) | `docs/memory/quickshell/0.3.0/` | 175 |
+| 0.3.0 (latest) | `docs/tooling/quickshell/0.3.0/` | 175 |
 
 To navigate a version, read its `INDEX.md` first (types grouped by QML module
 with one-line purpose, plus a guides table).

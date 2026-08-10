@@ -6,7 +6,7 @@ Local offline mirror of the official Bootstrap docs, scraped to clean markdown w
 
 | Version | Path | Pages |
 |---------|------|-------|
-| 5.3.8 (latest 5.3.x) | `docs/memory/bootstrap/5.3.8/` | 97 |
+| 5.3.8 (latest 5.3.x) | `docs/tooling/bootstrap/5.3.8/` | 97 |
 
 To navigate a version, read its `INDEX.md` first (per-page purpose, section anchors, quick-routing table).
 

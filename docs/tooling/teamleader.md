@@ -8,9 +8,9 @@ Backs the `docs-teamleader` skill (`personal/docs-teamleader/`).
 
 | Path | Contents |
 |------|----------|
-| `docs/memory/teamleader/INDEX.md` | Navigation index: endpoints grouped by business domain + guides table |
-| `docs/memory/teamleader/api/<slug>.md` | One file per `resource.action` endpoint (360 pages) |
-| `docs/memory/teamleader/guides/*.md` | Narrative docs: introduction, general-principles, authentication, sideloading, changelog |
+| `docs/tooling/teamleader/INDEX.md` | Navigation index: endpoints grouped by business domain + guides table |
+| `docs/tooling/teamleader/api/<slug>.md` | One file per `resource.action` endpoint (360 pages) |
+| `docs/tooling/teamleader/guides/*.md` | Narrative docs: introduction, general-principles, authentication, sideloading, changelog |
 
 To navigate, read `INDEX.md` first (per-endpoint purpose, grouped by domain,
 plus a quick-routing guides table).

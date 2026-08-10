@@ -26,7 +26,7 @@ e.g. `"$SKILL_DIR/bin/sync-quill-docs"`.
    ```
    MIRROR="$("$SKILL_DIR/bin/sync-quill-docs" --path)"
    ```
-   Prints the newest mirrored version dir (e.g. `.../docs/memory/quill/2.0.3`),
+   Prints the newest mirrored version dir (e.g. `.../docs/tooling/quill/2.0.3`),
    or exits non-zero if nothing is mirrored yet.
 2. **If that failed** (docs absent) **or you want the latest**, run it with no
    args to sync. It resolves the latest stable GitHub release, discovers docs
@@ -35,7 +35,7 @@ e.g. `"$SKILL_DIR/bin/sync-quill-docs"`.
    use `--force` to re-scrape all pages. Then re-run `--path`.
 
 One markdown file per official docs page, preserving source `url` and `title`
-in frontmatter. Memory entry: `docs/memory/quill.md`.
+in frontmatter. Tooling entry: `docs/tooling/quill.md`.
 
 **Start here:** read `$MIRROR/INDEX.md`. It gives quick routing plus every page
 grouped as start, core reference, modules, customization, or guides. Read only

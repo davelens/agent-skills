@@ -2,7 +2,7 @@
 
 Offline mirror of the official Quill rich-text editor docs (`quilljs.com/docs`). Read the smallest relevant file and verify method signatures, Delta shapes, module options, format names, and extension APIs instead of guessing.
 
-**Mirror root:** `docs/memory/quill/2.0.3/` · **Source:** `quilljs.com/docs` · 20 pages
+**Mirror root:** `docs/tooling/quill/2.0.3/` · **Source:** `quilljs.com/docs` · 20 pages
 
 ## Quick routing
 

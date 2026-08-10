@@ -2,7 +2,7 @@
 
 Offline mirror of the official Bootstrap docs. Each entry: file path, page title, one-line purpose, and its top-level sections (page anchors). Read a single file for full markup, class names, and `data-bs-*` attributes for that topic. Do not guess class names — verify against the file.
 
-**Mirror root:** `docs/memory/bootstrap/5.3.8/` · **Source:** `getbootstrap.com/docs/5.3` · 97 pages
+**Mirror root:** `docs/tooling/bootstrap/5.3.8/` · **Source:** `getbootstrap.com/docs/5.3` · 97 pages
 
 ## Quick routing
 

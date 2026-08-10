@@ -26,7 +26,7 @@ header), e.g. `"$SKILL_DIR/bin/sync-quickshell-docs"`.
    ```
    MIRROR="$("$SKILL_DIR/bin/sync-quickshell-docs" --path)"
    ```
-   Prints the newest mirrored version dir (e.g. `.../docs/memory/quickshell/0.3.0`),
+   Prints the newest mirrored version dir (e.g. `.../docs/tooling/quickshell/0.3.0`),
    or exits non-zero if nothing is mirrored yet.
 2. **If that failed** (docs absent) **or you want the latest**, run it with no
    args to sync — it discovers the latest docs version and its full page list
@@ -37,7 +37,7 @@ header), e.g. `"$SKILL_DIR/bin/sync-quickshell-docs"`.
 One markdown file per doc page: guides under `guide/<slug>.md`, type references
 under `types/<Module>/<Type>.md` with a module overview at
 `types/<Module>/index.md`. Each file keeps the source `url`/`title` in
-frontmatter. Memory entry: `docs/memory/quickshell.md`.
+frontmatter. Tooling entry: `docs/tooling/quickshell.md`.
 
 **Start here:** read `$MIRROR/INDEX.md` — a navigation index listing every type
 grouped by QML module with its one-line purpose, plus a guides table. Use it to

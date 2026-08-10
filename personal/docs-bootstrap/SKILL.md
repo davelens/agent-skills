@@ -25,7 +25,7 @@ against this skill's location (shown in the skill header), e.g.
    ```
    MIRROR="$("$SKILL_DIR/bin/sync-bootstrap-docs" --path)"
    ```
-   Prints the newest mirrored version dir (e.g. `.../docs/memory/bootstrap/5.3.8`),
+   Prints the newest mirrored version dir (e.g. `.../docs/tooling/bootstrap/5.3.8`),
    or exits non-zero if nothing is mirrored yet.
 2. **If that failed** (docs absent) **or you want the latest**, run it with no
    args to sync — it resolves the latest release, scrapes into the canonical
@@ -33,7 +33,7 @@ against this skill's location (shown in the skill header), e.g.
    Then re-run `--path` to get `$MIRROR`.
 
 One markdown file per doc page, grouped by the official nav. Each file keeps the
-source `url`/`title` in frontmatter. Memory entry: `docs/memory/bootstrap.md`.
+source `url`/`title` in frontmatter. Tooling entry: `docs/tooling/bootstrap.md`.
 
 **Start here:** read `$MIRROR/INDEX.md` — a navigation index listing every page
 with its purpose and top-level section anchors. Use it to route a request to the
@@ -75,5 +75,5 @@ to `$MIRROR`.
   `data-bs-*` toggles shown on their page.
 - A page not in the mirror, or a different version: fall back to
   `ketch scrape https://getbootstrap.com/docs/5.3/<section>/<slug>/ --select main --trim`.
-- On a new Bootstrap release, re-scrape into a new `docs/memory/bootstrap/<version>/`
-  folder and update the index table in `docs/memory/bootstrap.md`.
+- On a new Bootstrap release, re-scrape into a new `docs/tooling/bootstrap/<version>/`
+  folder and update the index table in `docs/tooling/bootstrap.md`.

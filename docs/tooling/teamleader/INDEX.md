@@ -2,7 +2,7 @@
 
 Offline mirror of the official Teamleader Focus API docs (`developer.focus.teamleader.eu`). Each API entry is a `resource.action` RPC method called via `POST https://api.focus.teamleader.eu/<resource>.<action>` with a JSON body. Read a single file for the full request body schema, field types, possible values, includes, and a JSON example. Do not guess field names or filters — verify against the file.
 
-**Mirror root:** `docs/memory/teamleader/` · **Source:** `developer.focus.teamleader.eu/docs` · 360 API pages
+**Mirror root:** `docs/tooling/teamleader/` · **Source:** `developer.focus.teamleader.eu/docs` · 360 API pages
 
 ## Start here (guides)
 

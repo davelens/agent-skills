@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # sync-quickshell-docs — mirror the Quickshell docs (quickshell.org) into
-# docs/memory/quickshell/<version>/ as clean markdown, then (re)generate
+# docs/tooling/quickshell/<version>/ as clean markdown, then (re)generate
 # that version's agent navigation INDEX.md.
 #
 # The docs are versioned in the URL (docs/v0.3.0/...). The latest version
@@ -28,7 +28,7 @@ SELF="$(readlink -f "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
 # personal/docs-quickshell/bin -> repo root is three levels up.
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-MIRROR_ROOT="$REPO_ROOT/docs/memory/quickshell"
+MIRROR_ROOT="$REPO_ROOT/docs/tooling/quickshell"
 
 SITE="https://quickshell.org"
 
@@ -176,7 +176,7 @@ out += [f"# Quickshell {VERSION} — Agent Navigation Index", "",
  "the full property/function/signal reference with types, defaults, and "
  "examples. Read a single file per lookup. Do not guess property or signal "
  "names — verify against the file.", "",
- f"**Mirror root:** `docs/memory/quickshell/{VERSION.lstrip('v')}/` · "
+ f"**Mirror root:** `docs/tooling/quickshell/{VERSION.lstrip('v')}/` · "
  f"**Source:** `quickshell.org/docs/{VERSION}` · "
  f"{ntypes} types in {len(modules)} modules", "",
  "## Guides", "",

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # sync-void-docs — mirror the Void Linux Handbook (docs.voidlinux.org) into
-# docs/memory/void/ as clean markdown, then (re)generate the agent navigation
+# docs/tooling/void/ as clean markdown, then (re)generate the agent navigation
 # INDEX.md.
 #
 # The handbook is an mdBook and is unversioned (a single rolling document), so
@@ -29,7 +29,7 @@ SELF="$(readlink -f "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
 # personal/docs-void/bin -> repo root is three levels up.
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-MIRROR="$REPO_ROOT/docs/memory/void"
+MIRROR="$REPO_ROOT/docs/tooling/void"
 
 SITE="https://docs.voidlinux.org"
 
@@ -146,7 +146,7 @@ out = ["# Void Linux Handbook — Agent Navigation Index", "",
  "and XBPS for packaging; it ships in glibc and musl variants. Read a single "
  "file per lookup. Do not guess a command, file path, or service name — verify "
  "against the page.", "",
- f"**Mirror root:** `docs/memory/void/` · **Source:** `docs.voidlinux.org` · "
+ f"**Mirror root:** `docs/tooling/void/` · **Source:** `docs.voidlinux.org` · "
  f"{len(entries)} pages", "",
  "## Contents", ""]
 for depth, number, name, href, md, desc in entries:
