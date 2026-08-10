@@ -1,4 +1,5 @@
 anthropics/skills@frontend-design
+diegopetrucci/remove-ai-code-slop@remove-ai-code-slop
 github/awesome-copilot@arch-linux-triage
 github/awesome-copilot@git-commit
 github/awesome-copilot@web-design-reviewer
