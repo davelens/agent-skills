@@ -1,4 +1,5 @@
 anthropics/skills@frontend-design
+diegopetrucci/rebase-and-fix-conflicts@rebase-and-fix-conflicts
 diegopetrucci/remove-ai-code-slop@remove-ai-code-slop
 diegopetrucci/starting-from-scratch@starting-from-scratch
 github/awesome-copilot@arch-linux-triage
