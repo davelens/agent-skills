@@ -1,6 +1,6 @@
 ---
 name: project-memory
-description: Read/write durable project-wide facts in `./docs/memory/`.
+description: Project memory for durable project-wide facts. Use first—before reading or searching project files—when answering high-level project questions or recording project-wide constraints, conventions, and preferences.
 ---
 
 # Durable Memory

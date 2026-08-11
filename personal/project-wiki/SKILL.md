@@ -1,6 +1,6 @@
 ---
 name: project-wiki
-description: Maintain `docs/wiki/` (how features/models work now) after functional changes.
+description: Project wiki for current functionality and business logic. Use first—before reading or searching project files—on any task involving features, models, schemas, workflows, integrations, business rules, or behavior; maintain it after functional changes.
 ---
 
 # Project Wiki
