@@ -1,6 +1,6 @@
 ---
 name: project-conventions
-description: Global defaults for any project
+description: Project-wide conventions and guardrails. Use at session start and before modifying files, installing packages, running destructive commands, or pushing Git changes.
 ---
 
 # Project Conventions
