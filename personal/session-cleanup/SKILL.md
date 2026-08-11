@@ -8,27 +8,32 @@ disable-model-invocation: true
 
 Clean unnamed Pi sessions belonging to the current working directory. Invocation explicitly authorizes naming and recoverably trashing unnamed sessions under that project's Pi session directory; do not ask for another confirmation.
 
-## Rules
+## Helper
 
-- Resolve the session directory with `dirname "$PI_SESSION_FILE"`. Stop if `PI_SESSION_FILE` is unset or the directory does not exist.
-- Touch only `.jsonl` files directly inside that exact directory.
-- Never trash the current `$PI_SESSION_FILE`.
-- Parse JSONL with Python's standard library. Do not treat grep output as the session record.
-- Never use `rm`. Trash with the first available command: `trash`, `trash-put`, or `gio trash`. If none exists, keep candidates and report that deletion was skipped.
-- If a file changes between classification and mutation, keep it. Uncertainty always means keep.
+Use `<skill-directory>/bin/session-cleanup` for all inspection and mutation. Do not write ad hoc Python, parse JSONL with grep, or mutate session files directly.
+
+The helper:
+
+- resolves the session directory from `$PI_SESSION_FILE`
+- touches only direct-child `.jsonl` files
+- excludes every session whose latest `session_info.name` is non-empty
+- strips injected `<skill>...</skill>` blocks and returns user text, assistant summaries, tool calls, and relevant paths
+- guards mutations with file metadata and SHA-256
+- never trashes the current session
+- trashes with `trash`, `trash-put`, or `gio trash`, never `rm`
+- appends and `fsync`s valid `session_info` records, then verifies names
+
+Uncertainty always means keep.
 
 ## 1. Inspect
 
-For every session, collect its latest `session_info.name`, if present. A non-empty name means the session is already described: exclude it from all further inspection, classification, trashing, and naming.
+Run once:
 
-For each remaining unnamed session, collect:
+```bash
+<skill-directory>/bin/session-cleanup inspect
+```
 
-- all user text after removing injected `<skill>...</skill>` blocks
-- assistant text summaries
-- tool-call names and relevant file paths
-- file size and modification time for the change guard
-
-Use the conversation's actual work, not its first message alone.
+Use every entry in `unnamed`; entries already named are reported only in `named_excluded`. Inspect `user_texts`, `assistant_texts`, `tool_calls`, and the conversation's actual work—not its first message alone. Keep entries reported in `uncertain` unchanged.
 
 ## 2. Classify trash
 
@@ -63,24 +68,46 @@ Give every kept unnamed session a name, including the current session. Never rep
 
 ## 4. Apply safely
 
-Trash classified files first. Recheck each candidate's size and modification time immediately before trashing.
+Give every `unnamed` entry exactly one decision. Copy its inspection guards unchanged into the plan:
 
-Rename by appending one valid `session_info` JSON line; never rewrite conversation history. Re-read the file immediately before appending and use:
+```json
+{
+  "trash": [
+    {
+      "file": "session.jsonl",
+      "size": 123,
+      "mtime_ns": 456,
+      "sha256": "inspection digest",
+      "reason": "greeting only"
+    }
+  ],
+  "rename": [
+    {
+      "file": "current.jsonl",
+      "size": 789,
+      "mtime_ns": 101112,
+      "sha256": "inspection digest",
+      "name": "Backend > Orders > Fix invoice export"
+    }
+  ]
+}
+```
 
-- a unique random 8-character lowercase hex `id`
-- the latest entry ID as `parentId`, or `null` when none exists
-- current UTC ISO timestamp ending in `Z`
-- the chosen name
+Pipe the plan into one command:
 
-Flush and `fsync` each append. The current session's footer may show its old name until reload; persisted name still counts.
+```bash
+<skill-directory>/bin/session-cleanup apply <<'JSON'
+<plan>
+JSON
+```
 
-## 5. Verify and report
+The helper trashes first, then renames. Non-current files must be byte-for-byte unchanged. Current-session transcript may have grown during classification, so the helper accepts append-only growth when the inspected prefix is unchanged. The current session's footer may show its old name until reload; persisted name still counts.
 
-Reparse every remaining processed JSONL file. Confirm its latest `session_info` name matches the chosen name and its topic contains fewer than 10 words.
+## 5. Report
 
-Report:
+Use the apply result to report:
 
 - renamed count
 - trashed count and one short reason per trashed session
-- uncertain sessions kept, if any
-- deletion candidates not removed because no trash command was available
+- `uncertain_kept`, if any
+- `not_removed` deletion candidates when no trash command was available

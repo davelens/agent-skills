@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+"""Smoke-test session-cleanup inspection and guarded rename."""
+
+import json
+import os
+from pathlib import Path
+import subprocess
+import tempfile
+
+
+BIN = Path(__file__).with_name('session-cleanup')
+
+
+def record(record_type, record_id, **fields):
+    return {'type': record_type, 'id': record_id, **fields}
+
+
+def write_records(path, records):
+    path.write_text(''.join(json.dumps(item) + '\n' for item in records), encoding='utf-8')
+
+
+def run(command, session, input_text=None):
+    environment = os.environ | {'PI_SESSION_FILE': str(session)}
+    result = subprocess.run(
+        [str(BIN), command],
+        input=input_text,
+        capture_output=True,
+        text=True,
+        env=environment,
+        check=True,
+    )
+    return json.loads(result.stdout)
+
+
+def main():
+    with tempfile.TemporaryDirectory() as temporary_directory:
+        directory = Path(temporary_directory)
+        current = directory / 'current.jsonl'
+        named = directory / 'named.jsonl'
+
+        write_records(current, [
+            record('session', 'root', cwd='/tmp/project'),
+            record('message', 'user1', parentId='root', message={
+                'role': 'user',
+                'content': [{
+                    'type': 'text',
+                    'text': '<skill name="x">outer <skill>example</skill> body</skill>Fix invoice export',
+                }],
+            }),
+        ])
+        write_records(named, [
+            record('session', 'named-root', cwd='/tmp/project'),
+            record(
+                'session_info',
+                'named-info',
+                parentId='named-root',
+                name='Backend > Orders > Existing name',
+            ),
+        ])
+
+        inspection = run('inspect', current)
+        assert inspection['named_excluded'] == 1
+        assert inspection['uncertain'] == []
+        assert len(inspection['unnamed']) == 1
+        session = inspection['unnamed'][0]
+        assert session['user_texts'] == ['Fix invoice export']
+
+        with current.open('a', encoding='utf-8') as output:
+            output.write(json.dumps(record(
+                'message',
+                'assistant1',
+                parentId='user1',
+                message={'role': 'assistant', 'content': []},
+            )) + '\n')
+
+        plan = {
+            'trash': [],
+            'rename': [{
+                **{key: session[key] for key in ('file', 'size', 'mtime_ns', 'sha256')},
+                'name': 'Backend > Orders > Fix invoice export',
+            }],
+        }
+        result = run('apply', current, json.dumps(plan))
+        assert len(result['renamed']) == 1
+        assert result['trashed'] == []
+        assert result['uncertain_kept'] == []
+
+        records = [json.loads(line) for line in current.read_text(encoding='utf-8').splitlines()]
+        assert records[-1]['type'] == 'session_info'
+        assert records[-1]['parentId'] == 'assistant1'
+        assert records[-1]['name'] == 'Backend > Orders > Fix invoice export'
+
+    print('session-cleanup helper check passed')
+
+
+if __name__ == '__main__':
+    main()
