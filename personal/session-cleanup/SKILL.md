@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Session Cleanup
 
-Clean Pi sessions belonging to the current working directory. Invocation explicitly authorizes renaming and recoverably trashing sessions under that project's Pi session directory; do not ask for another confirmation.
+Clean unnamed Pi sessions belonging to the current working directory. Invocation explicitly authorizes naming and recoverably trashing unnamed sessions under that project's Pi session directory; do not ask for another confirmation.
 
 ## Rules
 
@@ -19,9 +19,10 @@ Clean Pi sessions belonging to the current working directory. Invocation explici
 
 ## 1. Inspect
 
-For every session, collect:
+For every session, collect its latest `session_info.name`, if present. A non-empty name means the session is already described: exclude it from all further inspection, classification, trashing, and naming.
 
-- latest `session_info.name`, if present
+For each remaining unnamed session, collect:
+
 - all user text after removing injected `<skill>...</skill>` blocks
 - assistant text summaries
 - tool-call names and relevant file paths
@@ -58,7 +59,7 @@ Use:
 - **Area:** Most specific feature, module, package, or skill slug. Preserve real identifiers such as `docs-teamleader`.
 - **Topic:** Concrete dominant task in fewer than 10 words. Use concise sentence case; omit punctuation and filler.
 
-Keep an existing name only when it already matches this format and accurately describes the session. Give every other kept session a name, including the current session.
+Give every kept unnamed session a name, including the current session. Never replace an existing non-empty name.
 
 ## 4. Apply safely
 
@@ -75,7 +76,7 @@ Flush and `fsync` each append. The current session's footer may show its old nam
 
 ## 5. Verify and report
 
-Reparse every remaining JSONL file. Confirm its latest `session_info` name matches the chosen name and its topic contains fewer than 10 words.
+Reparse every remaining processed JSONL file. Confirm its latest `session_info` name matches the chosen name and its topic contains fewer than 10 words.
 
 Report:
 
