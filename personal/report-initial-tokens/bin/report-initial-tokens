@@ -1,0 +1,276 @@
+#!/usr/bin/env python3
+"""Report exact initial Pi usage and dry-probe current prompt contributors."""
+
+import argparse
+import json
+import os
+from pathlib import Path
+import shlex
+import shutil
+import subprocess
+import tempfile
+
+
+def fail(message):
+    raise SystemExit(message)
+
+
+def read_jsonl(path):
+    records = []
+    for number, line in enumerate(path.read_text(encoding='utf-8').splitlines(), 1):
+        try:
+            records.append(json.loads(line))
+        except json.JSONDecodeError as error:
+            fail(f'Invalid JSONL at line {number}: {error}')
+    return records
+
+
+def provider_calls(records):
+    calls = []
+    latest_user = None
+    for record in records:
+        if record.get('type') != 'message':
+            continue
+        message = record.get('message', {})
+        if message.get('role') == 'user':
+            latest_user = message
+        elif message.get('role') == 'assistant' and isinstance(message.get('usage'), dict):
+            calls.append((record, message, latest_user))
+    return calls
+
+
+def text_content(message):
+    content = message.get('content', []) if message else []
+    if isinstance(content, str):
+        return content
+    return ''.join(item.get('text', '') for item in content if isinstance(item, dict) and item.get('type') == 'text')
+
+
+def walk(value):
+    if isinstance(value, dict):
+        yield value
+        for child in value.values():
+            yield from walk(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from walk(child)
+
+
+def context_window(provider, model):
+    config = Path(os.environ.get('PI_CODING_AGENT_DIR', '~/.pi/agent')).expanduser()
+    matches = []
+    for name in ('models.json', 'models-store.json'):
+        path = config / name
+        if not path.is_file():
+            continue
+        try:
+            data = json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, json.JSONDecodeError):
+            continue
+        for item in walk(data):
+            if item.get('id') == model and isinstance(item.get('contextWindow'), int):
+                if not item.get('provider') or item.get('provider') == provider:
+                    matches.append(item['contextWindow'])
+    return matches[0] if matches and len(set(matches)) == 1 else None
+
+
+def usage_report(message, window):
+    usage = message['usage']
+    uncached = usage.get('input', 0)
+    cache_read = usage.get('cacheRead', 0)
+    cache_write = usage.get('cacheWrite', 0)
+    output = usage.get('output', 0)
+    prompt = uncached + cache_read + cache_write
+    total = usage.get('totalTokens', prompt + output)
+    return {
+        'provider': message.get('provider'),
+        'model': message.get('model'),
+        'uncached_input': uncached,
+        'cache_read': cache_read,
+        'cache_write': cache_write,
+        'prompt_tokens': prompt,
+        'output': output,
+        'reasoning': usage.get('reasoning', 0),
+        'total_tokens': total,
+        'cost': usage.get('cost'),
+        'context_window': window,
+        'prompt_percent': prompt / window * 100 if window else None,
+        'after_response_percent': total / window * 100 if window else None,
+    }
+
+
+def run_probe(skill_dir):
+    executable = shutil.which('pi')
+    if not executable:
+        return {'error': 'pi executable not found'}
+
+    descriptor, capture_name = tempfile.mkstemp(prefix='pi-initial-tokens-', suffix='.json')
+    os.close(descriptor)
+    Path(capture_name).unlink()
+    env = {**os.environ, 'PI_INITIAL_TOKENS_CAPTURE': capture_name, 'TERM': os.environ.get('TERM', 'xterm-256color')}
+    command = [executable, '--no-session', '-e', str(skill_dir / 'probe.ts'), 'Hi']
+    try:
+        script = shutil.which('script')
+        if script:
+            result = subprocess.run(
+                [script, '-qefc', shlex.join(command), '/dev/null'],
+                cwd=Path.cwd(), env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30,
+            )
+        else:
+            result = subprocess.run(
+                command, cwd=Path.cwd(), env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30,
+            )
+        if result.returncode or not Path(capture_name).is_file():
+            return {'error': f'probe exited with status {result.returncode}'}
+        return json.loads(Path(capture_name).read_text(encoding='utf-8'))
+    except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as error:
+        return {'error': str(error)}
+    finally:
+        Path(capture_name).unlink(missing_ok=True)
+
+
+def byte_count(value):
+    if not isinstance(value, str):
+        return 0
+    return len(value.encode('utf-8'))
+
+
+def compact_json_bytes(value):
+    return len(json.dumps(value, ensure_ascii=False, separators=(',', ':')).encode('utf-8'))
+
+
+def analyze_probe(capture, initial_timestamp):
+    if 'error' in capture:
+        return capture
+
+    base = capture.get('systemPrompt', '')
+    payload = capture.get('payload', {})
+    final = payload.get('instructions', '')
+    options = capture.get('systemPromptOptions', {})
+    all_tools = {tool.get('name'): tool for tool in capture.get('allTools', [])}
+    groups = {}
+    largest = []
+    for tool in payload.get('tools', []):
+        name = tool.get('name', '<unnamed>')
+        metadata = all_tools.get(name, {})
+        source = metadata.get('sourceInfo', {}).get('source', 'unknown')
+        size = compact_json_bytes(tool)
+        group = groups.setdefault(source, {'tools': 0, 'serialized_bytes': 0, 'names': []})
+        group['tools'] += 1
+        group['serialized_bytes'] += size
+        group['names'].append(name)
+        largest.append({'name': name, 'source': source, 'serialized_bytes': size})
+
+    context_at = base.find('<project_context>')
+    skills_at = base.find('The following skills provide specialized instructions')
+    sections = {}
+    if context_at >= 0 and skills_at >= 0:
+        sections = {
+            'pi_core_bytes': byte_count(base[:context_at]),
+            'project_context_bytes': byte_count(base[context_at:skills_at]),
+            'skill_catalog_bytes': byte_count(base[skills_at:]),
+        }
+
+    drift = []
+    for context_file in options.get('contextFiles', []):
+        path = Path(context_file.get('path', ''))
+        if not path.is_file():
+            continue
+        mtime_ms = path.stat().st_mtime_ns // 1_000_000
+        if initial_timestamp and mtime_ms > initial_timestamp:
+            drift.append({'path': str(path), 'mtime_ms': mtime_ms, 'changed_after_initial': True})
+
+    visible = base.count('  <skill>\n')
+    injection_sections = {}
+    if final.startswith(base):
+        injections = final[len(base):]
+        startup_at = injections.find('<startup_skill_loader>')
+        ponytail_at = injections.find('PONYTAIL MODE ACTIVE')
+        if startup_at >= 0:
+            injection_sections['startup_skill_loader_bytes'] = byte_count(
+                injections[startup_at:ponytail_at if ponytail_at >= 0 else None]
+            )
+        if ponytail_at >= 0:
+            injection_sections['ponytail_bytes'] = byte_count(injections[ponytail_at:])
+
+    return {
+        'scope': 'new session using current files and extensions; no provider request sent',
+        'base_instruction_bytes': byte_count(base),
+        'final_instruction_bytes': byte_count(final),
+        'extension_injection_bytes': byte_count(final[len(base):]) if final.startswith(base) else None,
+        'instruction_sections': sections,
+        'known_injection_sections': injection_sections,
+        'discovered_skills': len(options.get('skills', [])),
+        'visible_skill_catalog_entries': visible,
+        'active_tools': len(capture.get('activeTools', [])),
+        'provider_tools': len(payload.get('tools', [])),
+        'tools_by_source': dict(sorted(groups.items(), key=lambda item: item[1]['serialized_bytes'], reverse=True)),
+        'largest_tools': sorted(largest, key=lambda item: item['serialized_bytes'], reverse=True)[:10],
+        'context_file_drift': drift,
+    }
+
+
+def build_report(session, probe=False):
+    records = read_jsonl(session)
+    calls = provider_calls(records)
+    if not calls:
+        fail('Session has no assistant usage record')
+
+    _, first_message, first_user = calls[0]
+    timestamp = first_message.get('timestamp')
+    window = context_window(first_message.get('provider'), first_message.get('model'))
+    report = {
+        'session_file': str(session),
+        'initial_user_text': text_content(first_user),
+        'initial_timestamp_ms': timestamp,
+        'initial': usage_report(first_message, window),
+        'exact_component_token_split_available': False,
+        'component_split_reason': 'The provider records aggregate input usage; Pi does not persist the historical rendered system prompt and tool payload.',
+    }
+    if len(calls) > 1:
+        second = usage_report(calls[1][1], window)
+        denominator = second['uncached_input'] + second['cache_read']
+        second['cache_hit_percent'] = second['cache_read'] / denominator * 100 if denominator else None
+        report['next_provider_call'] = second
+    if probe:
+        skill_dir = Path(__file__).resolve().parent.parent
+        report['probe'] = analyze_probe(run_probe(skill_dir), timestamp)
+    return report
+
+
+def self_test():
+    records = [
+        {'type': 'message', 'message': {'role': 'user', 'content': [{'type': 'text', 'text': 'Hi'}]}},
+        {'type': 'message', 'message': {'role': 'assistant', 'provider': 'test', 'model': 'model', 'usage': {'input': 100, 'output': 10, 'reasoning': 2, 'cacheRead': 0, 'cacheWrite': 0, 'totalTokens': 110}}},
+        {'type': 'message', 'message': {'role': 'assistant', 'provider': 'test', 'model': 'model', 'usage': {'input': 20, 'output': 5, 'cacheRead': 80, 'cacheWrite': 0, 'totalTokens': 105}}},
+    ]
+    calls = provider_calls(records)
+    assert text_content(calls[0][2]) == 'Hi'
+    assert usage_report(calls[0][1], 1000)['prompt_percent'] == 10
+    second = usage_report(calls[1][1], 1000)
+    assert second['prompt_tokens'] == 100
+    print('ok')
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('session', nargs='?', help='Pi session JSONL; defaults to $PI_SESSION_FILE')
+    parser.add_argument('--probe', action='store_true', help='dry-probe current prompt and tools without an API request')
+    parser.add_argument('--pretty', action='store_true')
+    parser.add_argument('--self-test', action='store_true')
+    args = parser.parse_args()
+    if args.self_test:
+        self_test()
+        return
+
+    raw_session = args.session or os.environ.get('PI_SESSION_FILE')
+    if not raw_session:
+        fail('Pass a session path or set PI_SESSION_FILE')
+    session = Path(raw_session).expanduser().resolve()
+    if not session.is_file():
+        fail(f'Session file not found: {session}')
+    print(json.dumps(build_report(session, args.probe), ensure_ascii=False, indent=2 if args.pretty else None))
+
+
+if __name__ == '__main__':
+    main()
