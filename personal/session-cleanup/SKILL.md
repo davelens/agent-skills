@@ -53,8 +53,8 @@ Use:
 - **Namespace:** Broad product or code surface, such as `Backend`, `Frontend`, `Redesign`, or `API`. Never use the repository or project name merely because the session belongs to it.
   1. Prefer an explicit namespace in the user's task or an accurate existing name.
   2. Otherwise infer it from dominant routes, paths, or domain (`/backend` and `app/controllers/backend` imply `Backend`).
-  3. Use `General` only for genuinely project-wide work with no better namespace.
-  4. For delegated sessions, infer the original work namespace; never use `subagent-*` as the namespace.
+  3. For delegated sessions, infer the original work namespace; never use `subagent-*` as the namespace.
+  4. Emit the namespace only for genuinely project-wide work with no better namespace.
 - **Area:** Most specific feature, module, package, or skill slug. Preserve real identifiers such as `docs-teamleader`.
 - **Topic:** Concrete dominant task in fewer than 10 words. Use concise sentence case; omit punctuation and filler.
 
