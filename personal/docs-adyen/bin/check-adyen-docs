@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# Exercise corpus parsing and verify the canonical Adyen mirror.
+
+set -euo pipefail
+
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
+SYNC="$SCRIPT_DIR/sync-adyen-docs"
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+bash -n "$SYNC"
+
+cat > "$TMP/llms.txt" <<'EOF'
+# Adyen Docs
+
+- [Home](https://docs.adyen.com/.md)
+- [Account](https://docs.adyen.com/account.md): Manage an account.
+EOF
+
+cat > "$TMP/llms-full.txt" <<'EOF'
+# Adyen Docs — Full Markdown Corpus
+
+---
+
+# Source: https://docs.adyen.com/.md
+Section: Home
+Title: Home
+
+---
+title: "Home"
+url: "https://docs.adyen.com"
+---
+
+# Home
+
+Welcome.
+
+---
+
+# Source: https://docs.adyen.com/account.md
+Section: Account
+Title: Account
+Description: Manage an account.
+
+---
+title: "Account"
+url: "https://docs.adyen.com/account"
+---
+
+# Account
+
+Manage an account.
+EOF
+
+FIRST="$(ADYEN_DOCS_SITE="file://$TMP" ADYEN_DOCS_MIRROR="$TMP/mirror" "$SYNC")"
+SECOND="$(ADYEN_DOCS_SITE="file://$TMP" ADYEN_DOCS_MIRROR="$TMP/mirror" "$SYNC")"
+grep -q 'Pages: 2 total, 2 written\.' <<< "$FIRST"
+grep -q 'Pages: 2 total, 0 written\.' <<< "$SECOND"
+test -s "$TMP/mirror/home.md"
+test -s "$TMP/mirror/account.md"
+grep -q '\[Home\](home.md)' "$TMP/mirror/INDEX.md"
+
+MIRROR="$($SYNC --path)"
+MIRROR="$MIRROR" python3 - <<'PY'
+import os
+import re
+from pathlib import Path
+
+mirror = Path(os.environ["MIRROR"])
+index = (mirror / "INDEX.md").read_text(encoding="utf-8")
+links = set(re.findall(r"\]\(([^)]+\.md)\)", index))
+files = {
+    path.relative_to(mirror).as_posix()
+    for path in mirror.rglob("*.md")
+    if path.name != "INDEX.md"
+}
+
+if links != files:
+    missing = sorted(links - files)[:3]
+    stale = sorted(files - links)[:3]
+    raise SystemExit(f"Index/mirror mismatch; missing={missing}, stale={stale}")
+
+for rel in links:
+    page = mirror / rel
+    with page.open(encoding="utf-8") as source:
+        valid = page.stat().st_size > 0 and source.read(4) == "---\n"
+    if not valid:
+        raise SystemExit(f"Invalid mirrored page: {rel}")
+
+print(f"Adyen mirror check passed: {len(files)} pages")
+PY

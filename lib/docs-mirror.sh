@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
 # docs-mirror.sh — shared plumbing for the docs-* skill sync scripts
-# (docs-bootstrap, docs-quill, docs-quickshell, docs-teamleader, docs-void).
+# (docs-adyen, docs-bootstrap, docs-quill, docs-quickshell, docs-teamleader,
+# docs-void).
 # Sourced, not executed.
 #
 # Each sync script resolves its own REPO_ROOT (needed to locate this file),

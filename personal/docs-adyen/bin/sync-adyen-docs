@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+#
+# sync-adyen-docs — mirror Adyen's unversioned documentation from its native
+# llms.txt/llms-full.txt Markdown exports into docs/tooling/adyen/.
+#
+# Usage:
+#   sync-adyen-docs            sync missing pages and refresh INDEX.md
+#   sync-adyen-docs --force    refresh every page
+#   sync-adyen-docs --path     print the local mirror dir (no network)
+#
+# Requires: curl, python3.
+
+set -euo pipefail
+
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+MIRROR="${ADYEN_DOCS_MIRROR:-$REPO_ROOT/docs/tooling/adyen}"
+SITE="${ADYEN_DOCS_SITE:-https://docs.adyen.com}"
+
+# shellcheck source=../../../lib/docs-mirror.sh
+source "$REPO_ROOT/lib/docs-mirror.sh"
+
+dm_parse_args "${1:-}"
+[[ "$DM_MODE" == "path" ]] && dm_print_path_single "$MIRROR" "Adyen"
+
+dm_require curl python3
+mkdir -p "$MIRROR"
+
+INDEX_TMP="$(mktemp)"
+CORPUS_TMP=""
+cleanup() {
+  rm -f "$INDEX_TMP"
+  [[ -z "$CORPUS_TMP" ]] || rm -f "$CORPUS_TMP"
+}
+trap cleanup EXIT
+
+CURL=(curl -fsSL --retry 3 -A "Mozilla/5.0")
+echo "Fetching Adyen page index..."
+"${CURL[@]}" "$SITE/llms.txt" > "$INDEX_TMP"
+
+NEED_CORPUS="$(INDEX_TMP="$INDEX_TMP" MIRROR="$MIRROR" DM_FORCE="$DM_FORCE" python3 - <<'PY'
+import os
+import re
+from pathlib import Path
+from urllib.parse import unquote, urlsplit
+
+
+def local_path(url):
+    path = unquote(urlsplit(url).path)
+    if path == "/.md":
+        return Path("home.md")
+    rel = Path(path.removeprefix("/"))
+    if rel.is_absolute() or ".." in rel.parts or rel.suffix != ".md":
+        raise SystemExit(f"Unsafe Adyen docs path: {url}")
+    return rel
+
+index = Path(os.environ["INDEX_TMP"]).read_text(encoding="utf-8")
+urls = set(re.findall(r"https://docs\.adyen\.com/(?:\.md|[^)\s]+\.md)", index))
+mirror = Path(os.environ["MIRROR"])
+missing = [
+    url
+    for url in urls
+    if not (mirror / local_path(url)).is_file()
+    or (mirror / local_path(url)).stat().st_size == 0
+]
+print(1 if os.environ["DM_FORCE"] == "1" or missing else 0)
+PY
+)"
+
+if [[ "$NEED_CORPUS" == "1" ]]; then
+  CORPUS_TMP="$(mktemp)"
+  echo "Fetching full Adyen Markdown corpus..."
+  "${CURL[@]}" "$SITE/llms-full.txt" > "$CORPUS_TMP"
+fi
+
+INDEX_TMP="$INDEX_TMP" CORPUS_TMP="$CORPUS_TMP" MIRROR="$MIRROR" DM_FORCE="$DM_FORCE" python3 - <<'PY'
+import os
+import re
+from pathlib import Path
+from urllib.parse import unquote, urlsplit
+
+mirror = Path(os.environ["MIRROR"])
+index = Path(os.environ["INDEX_TMP"]).read_text(encoding="utf-8")
+force = os.environ["DM_FORCE"] == "1"
+
+
+def local_path(url):
+    path = unquote(urlsplit(url).path)
+    if path == "/.md":
+        return Path("home.md")
+    rel = Path(path.removeprefix("/"))
+    if rel.is_absolute() or ".." in rel.parts or rel.suffix != ".md":
+        raise SystemExit(f"Unsafe Adyen docs path: {url}")
+    return rel
+
+
+page_urls = list(dict.fromkeys(re.findall(r"https://docs\.adyen\.com/(?:\.md|[^)\s]+\.md)", index)))
+expected = {url: local_path(url) for url in page_urls}
+
+corpus_path = os.environ["CORPUS_TMP"]
+written = 0
+if corpus_path:
+    corpus = Path(corpus_path).read_text(encoding="utf-8")
+    markers = list(re.finditer(r"(?m)^# Source: (https://docs\.adyen\.com/.*?\.md)$", corpus))
+    pages = {}
+    separator = "\n---\n\n"
+    for position, marker in enumerate(markers):
+        url = marker.group(1)
+        frontmatter = corpus.find("\n---\n", marker.end())
+        if frontmatter < 0:
+            raise SystemExit(f"Missing frontmatter for {url}")
+        start = frontmatter + 1
+        if position + 1 < len(markers):
+            next_start = markers[position + 1].start()
+            if corpus[next_start - len(separator):next_start] != separator:
+                raise SystemExit(f"Missing page separator after {url}")
+            end = next_start - len(separator)
+        else:
+            end = len(corpus)
+        pages[url] = corpus[start:end].rstrip() + "\n"
+
+    missing_from_corpus = set(expected) - set(pages)
+    if missing_from_corpus:
+        sample = ", ".join(sorted(missing_from_corpus)[:3])
+        raise SystemExit(f"Corpus missing {len(missing_from_corpus)} indexed pages: {sample}")
+
+    for url, rel in expected.items():
+        out = mirror / rel
+        if out.is_file() and out.stat().st_size > 0 and not force:
+            continue
+        out.parent.mkdir(parents=True, exist_ok=True)
+        tmp = out.with_suffix(out.suffix + ".tmp")
+        tmp.write_text(pages[url], encoding="utf-8")
+        tmp.replace(out)
+        written += 1
+
+missing = [
+    str(rel)
+    for rel in expected.values()
+    if not (mirror / rel).is_file() or (mirror / rel).stat().st_size == 0
+]
+if missing:
+    raise SystemExit(f"Mirror incomplete: {len(missing)} pages missing")
+
+# Adyen publishes llms.txt as the navigation index. Keep its hierarchy and
+# descriptions, but point page links at the local mirror.
+def local_link(match):
+    return local_path(match.group(0)).as_posix()
+
+local_index = re.sub(r"https://docs\.adyen\.com/(?:\.md|[^)\s]+\.md)", local_link, index)
+local_index = re.sub(
+    r"\nSee also \[llms-full\.txt\]\([^\n]+\) for the full concatenated Markdown corpus of every page listed below\.\n",
+    "\n",
+    local_index,
+)
+(mirror / "INDEX.md").write_text(local_index.rstrip() + "\n", encoding="utf-8")
+print(f"Pages: {len(expected)} total, {written} written. INDEX.md refreshed.")
+PY
+
+echo "Done: $MIRROR"
