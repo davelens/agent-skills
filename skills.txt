@@ -1,12 +1,9 @@
-anthropics/skills@frontend-design
 diegopetrucci/rebase-and-fix-conflicts@rebase-and-fix-conflicts
 diegopetrucci/remove-ai-code-slop@remove-ai-code-slop
 diegopetrucci/starting-from-scratch@starting-from-scratch
 github/awesome-copilot@arch-linux-triage
 github/awesome-copilot@git-commit
-github/awesome-copilot@web-design-reviewer
 JuliusBrussee/skills@caveman
-mattpocock/skills@ask-matt
 mattpocock/skills@codebase-design
 mattpocock/skills@code-review
 mattpocock/skills@diagnosing-bugs
@@ -25,8 +22,6 @@ mattpocock/skills@to-spec
 mattpocock/skills@to-tickets
 mattpocock/skills@wayfinder
 mattpocock/skills@writing-great-skills
-vercel-labs/skills@find-skills
-wshobson/agents@tailwind-design-system
 personal/add-flexible-content-type
 personal/brief-pipeline
 personal/docs-reference
