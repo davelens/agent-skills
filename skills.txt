@@ -3,7 +3,6 @@ diegopetrucci/remove-ai-code-slop@remove-ai-code-slop
 diegopetrucci/starting-from-scratch@starting-from-scratch
 github/awesome-copilot@arch-linux-triage
 github/awesome-copilot@git-commit
-JuliusBrussee/skills@caveman
 mattpocock/skills@codebase-design
 mattpocock/skills@code-review
 mattpocock/skills@diagnosing-bugs
