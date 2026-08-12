@@ -17,11 +17,11 @@ mattpocock/skills@improve-codebase-architecture
 mattpocock/skills@prototype
 mattpocock/skills@setup-matt-pocock-skills
 mattpocock/skills@tdd
-mattpocock/skills@teach
 mattpocock/skills@to-spec
 mattpocock/skills@to-tickets
 mattpocock/skills@wayfinder
-mattpocock/skills@writing-great-skills
+mattpocock/skills@wait-what
+mattpocock/skills@writing-for-agents
 personal/add-flexible-content-type
 personal/brief-pipeline
 personal/docs-reference
