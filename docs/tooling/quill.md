@@ -2,7 +2,7 @@
 
 Local offline mirror of the official Quill rich-text editor docs
 (`quilljs.com/docs`), scraped to clean markdown with `ketch`. Backs the
-`docs-quill` skill (`personal/docs-quill/`).
+reference in `personal/docs-reference/references/quill.md`.
 
 ## Versions
 
@@ -27,7 +27,8 @@ grouped as start, core reference, modules, customization, and guides.
 
 - Latest stable version comes from `slab/quill` GitHub releases; mirror dirs
   use the bare version (`2.0.3`). The matching release tag's website source tree
-  supplies the page list on each sync of `bin/sync-quill-docs`.
+  supplies the page list on each sync of
+  `personal/docs-reference/bin/sync-quill-docs`.
 - Source pages use `https://quilljs.com/docs/<path>/`, scraped with
   `--select article`.
 - On a new release: re-run the sync. It creates a version folder and regenerates

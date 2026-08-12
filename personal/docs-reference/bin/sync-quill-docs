@@ -23,7 +23,7 @@ set -euo pipefail
 # Resolve through skill symlinks so the mirror always lands in this repo.
 SELF="$(readlink -f "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
-# personal/docs-quill/bin -> repo root is three levels up.
+# personal/docs-reference/bin -> repo root is three levels up.
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 MIRROR_ROOT="$REPO_ROOT/docs/tooling/quill"
 

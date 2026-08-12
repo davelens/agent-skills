@@ -29,12 +29,7 @@ vercel-labs/skills@find-skills
 wshobson/agents@tailwind-design-system
 personal/add-flexible-content-type
 personal/brief-pipeline
-personal/docs-adyen
-personal/docs-bootstrap
-personal/docs-quill
-personal/docs-quickshell
-personal/docs-teamleader
-personal/docs-void
+personal/docs-reference
 personal/gauntlet-loop
 personal/ketch
 personal/project-conventions

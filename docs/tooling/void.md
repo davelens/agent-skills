@@ -1,8 +1,8 @@
 # Void Linux Handbook Mirror
 
 Local offline mirror of the official Void Linux Handbook (`docs.voidlinux.org`),
-scraped to clean markdown with `ketch`. Backs the `docs-void` skill
-(`personal/docs-void/`).
+scraped to clean markdown with `ketch`. Backs
+`personal/docs-reference/references/void.md`.
 
 ## Location
 
@@ -26,7 +26,8 @@ one-line purpose.
 
 - Page list and section hierarchy are discovered live from the mdBook sidebar
   TOC (`<nav id="sidebar">` on the home page) on each sync of
-  `bin/sync-void-docs` — new pages are picked up without editing the script.
+  `personal/docs-reference/bin/sync-void-docs` — new pages are picked up without
+  editing the script.
 - Content selector is **`main`** (mdBook's `#content` is the search wrapper,
   not the page body). URL→file: strip `.html`, add `.md`, keep the tree.
 - Source: `https://docs.voidlinux.org/<path>.html`, scraped with `--select main`.

@@ -1,8 +1,3 @@
----
-name: docs-teamleader
-description: Look up and apply Teamleader Focus API endpoints, request bodies, filters, includes, OAuth 2 authentication, pagination, and conventions from a local offline mirror of the official developer docs. Use when integrating with the Teamleader Focus API, when the user says "use the Teamleader API to do X", or when an endpoint, field, filter, scope, or auth detail needs to be looked up or verified.
----
-
 # Teamleader Focus API
 
 Build and verify Teamleader Focus integrations against a **local offline

@@ -61,7 +61,7 @@ Use:
   2. Otherwise infer it from dominant routes, paths, or domain (`/backend` and `app/controllers/backend` imply `Backend`).
   3. For delegated sessions, infer the original work namespace; never use `subagent-*` as the namespace.
   4. Emit the namespace only for genuinely project-wide work with no better namespace.
-- **Area:** Most specific feature, module, package, or skill slug. Preserve real identifiers such as `docs-teamleader`.
+- **Area:** Most specific feature, module, package, or skill slug. Preserve real identifiers such as `docs-reference`.
 - **Topic:** Concrete dominant task in fewer than 10 words. Use concise sentence case; omit punctuation and filler.
 
 Give every kept unnamed session a name, including the current session. Never replace an existing non-empty name.

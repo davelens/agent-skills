@@ -1,7 +1,8 @@
 # Docs Tooling
 
-Offline third-party documentation mirrors used by the personal `docs-*` skills.
-Mirror content lives here instead of `docs/memory/`, which is reserved for
+Offline third-party documentation mirrors used by the personal
+`docs-reference` skill. Mirror content lives here instead of `docs/memory/`,
+which is reserved for
 concise project-wide facts and conventions.
 
 ## Mirrors
@@ -13,7 +14,7 @@ concise project-wide facts and conventions.
 - [Teamleader Focus API](teamleader.md) — unversioned API docs.
 - [Void Linux Handbook](void.md) — unversioned rolling handbook.
 
-Each `personal/docs-<product>/bin/sync-<product>-docs` script owns discovery,
+Each `personal/docs-reference/bin/sync-<product>-docs` script owns discovery,
 fetching, and `INDEX.md` generation. Shared helpers live in
 `lib/docs-mirror.sh`.
 

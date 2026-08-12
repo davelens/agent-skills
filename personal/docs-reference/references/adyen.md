@@ -1,8 +1,3 @@
----
-name: docs-adyen
-description: Look up and apply Adyen documentation for online and in-person payments, payment methods, webhooks, Platforms, Issuing, payouts, risk, testing, and API credentials/versioning using an offline docs mirror and the official API Explorer. Use when working on an Adyen integration, troubleshooting Adyen behavior, or verifying an exact Adyen field, event, requirement, or API version.
----
-
 # Adyen Docs
 
 Build and verify Adyen integrations against a **local offline mirror** of

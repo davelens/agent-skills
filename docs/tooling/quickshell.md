@@ -1,8 +1,8 @@
 # Quickshell Docs Mirror
 
 Local offline mirror of the official Quickshell docs (`quickshell.org/docs`),
-scraped to clean markdown with `ketch`. Backs the `docs-quickshell` skill
-(`personal/docs-quickshell/`).
+scraped to clean markdown with `ketch`. Backs
+`personal/docs-reference/references/quickshell.md`.
 
 ## Versions
 
@@ -26,7 +26,8 @@ with one-line purpose, plus a guides table).
 
 - Docs are versioned in the URL (`docs/v0.3.0/...`); mirror dirs use the bare
   version (`0.3.0`). Latest version and page list are discovered live from
-  `sitemap.xml` on each sync of `bin/sync-quickshell-docs`.
+  `sitemap.xml` on each sync of
+  `personal/docs-reference/bin/sync-quickshell-docs`.
 - Source: `https://quickshell.org/docs/v<version>/<section>/<slug>/`, scraped
   with `--select .docs-content`.
 - On a new release: re-run the sync — it scrapes into a new version folder and

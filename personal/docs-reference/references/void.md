@@ -1,8 +1,3 @@
----
-name: docs-void
-description: Look up and apply Void Linux setup — installation, XBPS package management, runit services, network/graphics/audio configuration, and musl vs glibc differences — from a local offline mirror of the official Void Linux Handbook. Use when installing, configuring, or troubleshooting a Void system, when the user says "on Void, how do I X", or when a Void command, service name, or config path needs to be looked up or verified.
----
-
 # Void Linux Handbook
 
 Configure and troubleshoot Void Linux against a **local offline mirror** of the

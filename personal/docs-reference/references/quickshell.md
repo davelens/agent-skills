@@ -1,8 +1,3 @@
----
-name: docs-quickshell
-description: Look up and apply Quickshell QML types, properties, signals, functions, and guides (bars/panels, widgets, lockscreens, Wayland layershell, Hyprland/I3 integration, system services) from a local offline mirror of the official docs. Use when building or debugging a Quickshell config/shell, when the user says "use Quickshell to build X", or when a Quickshell type, property, signal, or import needs to be looked up or verified.
----
-
 # Quickshell
 
 Build and verify Quickshell configs against a **local offline mirror** of the

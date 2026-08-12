@@ -1,7 +1,7 @@
 # Adyen Docs Mirror
 
 Local offline mirror of the official Adyen documentation (`docs.adyen.com`).
-Backs the `docs-adyen` skill (`personal/docs-adyen/`).
+Backs `personal/docs-reference/references/adyen.md`.
 
 ## Layout
 
@@ -19,8 +19,9 @@ Backs the `docs-adyen` skill (`personal/docs-adyen/`).
 - Adyen publishes native Markdown: `llms.txt` is the page catalog,
   `llms-full.txt` is the concatenated corpus, and each docs URL supports a
   `.md` suffix.
-- `personal/docs-adyen/bin/sync-adyen-docs` downloads the two exports, splits
-  the corpus into page files, and rewrites `INDEX.md` links to the local mirror.
+- `personal/docs-reference/bin/sync-adyen-docs` downloads the two exports,
+  splits the corpus into page files, and rewrites `INDEX.md` links to the local
+  mirror.
 - A normal sync adds missing pages and refreshes the index. `--force` refreshes
-  every page. `personal/docs-adyen/bin/check-adyen-docs` exercises corpus
+  every page. `personal/docs-reference/bin/check-adyen-docs` exercises corpus
   parsing and checks mirror completeness.

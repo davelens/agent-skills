@@ -2,7 +2,7 @@
 
 Local offline mirror of the official Teamleader Focus API docs
 (`developer.focus.teamleader.eu/docs`), scraped to clean markdown with `ketch`.
-Backs the `docs-teamleader` skill (`personal/docs-teamleader/`).
+Backs `personal/docs-reference/references/teamleader.md`.
 
 ## Layout
 
@@ -20,7 +20,8 @@ plus a quick-routing guides table).
 - The API is **unversioned in the docs** (versioned via the `X-Api-Version`
   request header), so there is a single mirror — no version folders.
 - Endpoint list is discovered live from `sitemap.xml` on each sync, so a plain
-  re-run of `bin/sync-teamleader-docs` picks up newly added endpoints.
+  re-run of `personal/docs-reference/bin/sync-teamleader-docs` picks up newly
+  added endpoints.
 - Source: `https://developer.focus.teamleader.eu/docs/api/<slug>` and
   `.../docs/<guide>`.
 - On a refresh: re-run the sync (use `--force` to re-scrape every page), which

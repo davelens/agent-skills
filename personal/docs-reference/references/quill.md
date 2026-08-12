@@ -1,8 +1,3 @@
----
-name: docs-quill
-description: Look up and apply Quill 2 rich-text editor APIs, Delta operations, formats, modules (toolbar, keyboard, history, clipboard, syntax), themes, registries, and Parchment customization from a local offline mirror of the official docs. Use when building, configuring, extending, upgrading, or debugging a Quill editor, or when a Quill method, event, option, format, Delta shape, or module behavior needs verification.
----
-
 # Quill 2
 
 Build and verify Quill editors against a **local offline mirror** of the
