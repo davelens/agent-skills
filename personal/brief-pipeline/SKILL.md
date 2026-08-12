@@ -1,46 +1,39 @@
 ---
 name: brief-pipeline
-description: "Brief pipeline: scout → planner → gate → worker. Use when executing docs/briefs/ or when another skill needs gated implementation from a spec."
+description: "Gated brief execution: scout → planner → approval → worker. Use when executing docs/briefs/ or when another skill needs implementation from a spec."
 ---
 
-Pipeline: **brief** → `scout` → `planner` → **gate** → `worker`. You are parent orchestrator. Children receive the full brief directly; prior outputs supplement it. The brief **routes** model + thinking by tier.
+Pipeline: **brief** → `scout` → `planner` → **gate** → `worker`. You are the orchestrator. The brief is authoritative; child reports supplement it.
 
 ## Steps
 
-1. **Resolve the brief.** Locate an explicit path, pasted text, or the newest file in `docs/briefs/`. If none exists and the request is too thin, ask before dispatch. Read it in full; it is the authoritative spec. Done when you have the brief content and its path, or know it was pasted inline.
+1. **Resolve the brief.** Use an explicit path, pasted text, or the newest file in `docs/briefs/`. If none exists and the request is too thin, ask before dispatch. Read it in full. Done when you have the complete brief and its path, or know it was pasted inline.
 
-2. **Route.** Classify the brief into a **tier** and resolve each phase's expanded model string with `:level` suffix (see [Routing](#routing)). Done when scout, planner, and worker each have an exact model string.
+2. **Scout.** Run `subagent({ action: "run", agent: "scout", task: "..." })` with a self-contained task containing the full brief. Ask for relevant files, existing patterns, constraints, integration points, and validation commands. Done when the returned report gives exact evidence the plan can use.
 
-3. **Scout.** Dispatch `scout` (async, then `wait()`) with the routed model. Pass the brief and ask which files, patterns, constraints, and integration points bear on the work. Done when scout's `context.md` names the files and constraints the plan must respect.
+3. **Plan.** Run `subagent({ action: "run", agent: "planner", task: "..." })` with a self-contained task containing the full brief and scout report. Ask for an ordered, checkable implementation plan covering every requirement, affected file, dependency, risk, and validation step. Done when each brief requirement maps to an implementation step and an acceptance check.
 
-4. **Plan.** Dispatch `planner` (async, then `wait()`) with the routed model. Pass the brief plus scout context. Done when `plan.md` covers the brief as ordered, checkable implementation steps with validation.
+4. **Gate.** Apply [The gate](#the-gate). When approval is required, present the planner report and stop. Continue only after explicit approval. Requested changes loop back to step 3 with the brief, scout report, previous plan, and feedback. Done when approval is explicit or the gate was pre-authorised for skipping.
 
-5. **Gate.** Decide whether approval is required (see [The gate](#the-gate)). If yes, present the plan and **stop**; do not dispatch `worker` in the same turn. Dispatch `worker` only after explicit approval. If the user requests changes, loop back to step 4 with the brief, scout context, previous plan, and feedback. Done when you have explicit approval or confirmed pre-authorised gate skip.
+5. **Build.** Run `subagent({ action: "run", agent: "worker", task: "..." })` with a self-contained task containing the full brief, scout findings, and approved plan. The worker is the sole writer. Done when its report names changed files, validation performed, and remaining issues, including failures.
 
-6. **Build.** Dispatch `worker` (async, then `wait()`) with the routed model. Pass the brief, scout context, and approved or pre-authorised `plan.md`. It is the sole writer for the worktree. Done when it reports changed files, validation run, and remaining issues — failures included.
+6. **Verify.** Check the worker report against every plan step and brief requirement. Run a focused reviewer only when risk or unresolved evidence warrants it. Done when the parent can account for every requirement or reports what remains.
 
 ## The gate
 
-Gate = user approval before code gets written. Default: **require** approval.
+Approval before writing is the default. Skip only when the brief or user explicitly pre-authorises implementation without sign-off, such as “no gate”, “just build it”, or “no sign-off needed”.
 
-Skip only when the brief or user pre-authorises it: "no gate", "just build it", "no sign-off needed", or explicit implement-without-review wording. When unsure, gate.
+## Async operation
 
-## Routing
+The pipeline is sequential, so foreground runs are the default. If the user explicitly wants control returned during a stage:
 
-Each phase pins model **and** thinking through the `:level` suffix on the model string; no separate thinking parameter exists (`model: "openai-codex/gpt-5.6-sol:high"`). Levels: `off, minimal, low, medium, high, xhigh`. Always use `openai-codex` for GPT models, never `openai`.
+1. Start that stage with `async: true` and retain its run ID and report path.
+2. Stop the pipeline for the current turn.
+3. On continuation, call `subagent({ action: "status", runId: "..." })`.
+4. When complete, read the saved report and continue with the next stage. Use `action: "stop"` to abort it.
 
-Honour a tier named in the brief; otherwise infer it:
+Only one mutation-capable async agent may run per working directory. Every foreground and async run already writes a recoverable report under `~/.config/agents/pi/reports/`; do not ask children to create duplicate `context.md` or `plan.md` artifacts.
 
-| Tier | When | scout | planner | worker |
-|------|------|-------|---------|--------|
-| `simple` | small, local, low-risk edits | `openai-codex/gpt-5.6-luna:low` | `openai-codex/gpt-5.6-terra:medium` | `claude-bridge/claude-sonnet-5:medium` |
-| `default` | normal feature work | `claude-bridge/claude-sonnet-5:medium` | `openai-codex/gpt-5.6-sol:high` | `claude-bridge/claude-fable-5:high` |
-| `dangerous` | refactors, migrations, concurrency, security-sensitive code | `openai-codex/gpt-5.6-sol:medium` | `claude-bridge/claude-fable-5:xhigh` | `claude-bridge/claude-fable-5:xhigh` |
+## Agent configuration
 
-Routing rationale: Luna/Terra/Sonnet minimize spend on bounded work; Sonnet and Sol add stronger exploration and planning for normal work; Fable owns repository implementation and highest-risk planning because its SWE-bench Pro and long-horizon reliability are stronger, while Sol remains preferred for coding-oriented planning and tool-heavy reconnaissance.
-
-A brief may override any cell explicitly (e.g. "worker: fable high", or a routing block naming model + level per phase); explicit brief directive wins. When silent, use `default`. When two tiers seem plausible, pick the higher.
-
-## Notes
-
-Subagent mechanics live in `pi-subagents`; this skill defines only pipeline shape and gate.
+Model, thinking, fallback models, and tools belong to each agent’s Markdown definition and effective `/subagents` settings. This pipeline does not override them per run.
