@@ -28,6 +28,7 @@ live in the owning skill, not here.
 - Always answer in english
 - Spaces, not tabs (where applicable)
 - Blank lines contain only newline character (no trailing spaces/tabs)
+- When generating markdown files, don't use HTML unless specifically requested
 - Comments in sentence case, not all-caps
 - Bash section headers may use simple decorative borders
 - Never `git push` without asking
