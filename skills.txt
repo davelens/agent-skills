@@ -32,4 +32,5 @@ personal/project-wiki
 personal/report-initial-tokens
 personal/search-activecollab-history
 personal/search-git-history
+personal/search-gmail
 personal/session-cleanup
