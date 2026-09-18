@@ -1,7 +1,7 @@
 ---
 url: https://docs.voidlinux.org/config/graphical-session/wayland.html
 title: Wayland - The Void Linux Handbook
-words: 480
+words: 471
 ---
 Wayland
 
@@ -22,7 +22,6 @@ Void Linux currently packages the following Wayland compositors:
 - Weston: reference compositor for Wayland
 - Sway: an i3-compatible Wayland compositor
 - Wayfire: 3D Wayland compositor
-- Hikari: a stacking compositor with some tiling features
 - Cage: a Wayland kiosk
 - River: a dynamic tiling Wayland compositor
 - Niri: a scrolling-tiling Wayland compositor

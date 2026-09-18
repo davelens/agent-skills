@@ -1,7 +1,7 @@
 ---
 url: https://docs.voidlinux.org/installation/index.html
 title: Installation - The Void Linux Handbook
-words: 610
+words: 611
 ---
 Installation
 
@@ -11,7 +11,11 @@ Base system requirements
 
 Void can be installed on very low-powered hardware, though we recommend the following minimums for most installations:
 
-ArchitectureCPURAMStorage x86\64-glibcx86\64520MB700MB x86\64-muslx86\64520MB600MB i686-glibcPentium 4 (SSE2)520MB700MB
+|Architecture|CPU|RAM|Storage|
+|---|---|---|---|
+|x86\64-glibc|x86\64|520MB|700MB|
+|x86\64-musl|x86\64|520MB|600MB|
+|i686-glibc|Pentium 4 (SSE2)|520MB|700MB|
 
 Note that Xfce installation images require more resources, and more resources may be required depending on the software being run.
 

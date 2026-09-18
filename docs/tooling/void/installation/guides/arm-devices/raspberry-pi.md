@@ -1,7 +1,7 @@
 ---
 url: https://docs.voidlinux.org/installation/guides/arm-devices/raspberry-pi.html
 title: Raspberry Pi - The Void Linux Handbook
-words: 545
+words: 546
 ---
 Raspberry Pi
 
@@ -11,7 +11,11 @@ The command line parameters passed to the kernel are in the /boot/cmdline.txt fi
 
 Supported Models
 
-ModelArchitecture 1 A, 1 B, 1 A+, 1 B+, Zero, Zero W, Zero WHarmv6l 2 Barmv7l 3 B, 3 A+, 3 B+, Zero 2W, 4 B, 400, CM4, 5, 500, CM5aarch64
+|Model|Architecture|
+|---|---|
+|1 A, 1 B, 1 A+, 1 B+, Zero, Zero W, Zero WH|armv6l|
+|2 B|armv7l|
+|3 B, 3 A+, 3 B+, Zero 2W, 4 B, 400, CM4, 5, 500, CM5|aarch64|
 
 > It is possible to run the armv7l images on an RPi 3, as the RPi 3's CPU supports both the Armv8 and Armv7 instruction sets. The difference between these images is that the armv7l image provides a 32-bit system while the aarch64 image provides a 64-bit system.
 

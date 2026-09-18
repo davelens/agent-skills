@@ -1,7 +1,7 @@
 ---
 url: https://docs.voidlinux.org/config/external-applications.html
 title: External Applications - The Void Linux Handbook
-words: 724
+words: 726
 ---
 External Applications
 
@@ -11,13 +11,25 @@ The Void repositories have a number of Python and Lua packages. If possible, ins
 
 To keep packages smaller, Void has separate devel packages for header files and development tools. If you install a library or application via a language's package manager (e.g. pip, gem), or compile one from source, you may need to install the programming language's -devel package. This is specially relevant for musl libc users, due to pre-built binaries usually targeting glibc instead.
 
-LanguagePackage ManagerVoid Package Python3pip, anaconda, virtualenv, etcpython3-devel Python2pip, anaconda, virtualenv, etcpython2-devel Rubygemruby-devel lualuarockslua-devel
+|Language|Package Manager|Void Package|
+|---|---|---|
+|Python3|pip, anaconda, virtualenv, etc|python3-devel|
+|Python2|pip, anaconda, virtualenv, etc|python2-devel|
+|Ruby|gem|ruby-devel|
+|lua|luarocks|lua-devel|
 
 Java
 
 Void provides LTS versions of the OpenJDK development kits and runtimes. Currently, versions 8, 11, 17, and 21 are available. To run Java-based applications, install the Java Runtime Environment of the desired version. To build Java-based programs, install the Java Development Kit of the desired version (and optionally other components listed below).
 
-Void PackageDescription openjdkXJava Development Kit openjdkX-jreJava Runtime Environment openjdkX-docDeveloper documentation openjdkX-srcJava source code openjdkX-jmodsJava modules openjdkX-static-libsJava static libraries
+|Void Package|Description|
+|---|---|
+|openjdkX|Java Development Kit|
+|openjdkX-jre|Java Runtime Environment|
+|openjdkX-doc|Developer documentation|
+|openjdkX-src|Java source code|
+|openjdkX-jmods|Java modules|
+|openjdkX-static-libs|Java static libraries|
 
 To facilitate installing multiple Java versions in parallel, Void's OpenJDK packages use xbps-alternatives(1) to select the default JDK and JRE. Each openjdkX package provides the jdk alternative group, and each openjdkX-jre package provides the java alternative group.
 

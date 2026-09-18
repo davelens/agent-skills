@@ -1,7 +1,7 @@
 ---
 url: https://docs.voidlinux.org/config/graphical-session/graphics-drivers/nvidia.html
 title: NVIDIA - The Void Linux Handbook
-words: 532
+words: 533
 ---
 NVIDIA
 
@@ -45,7 +45,13 @@ $ lspci -k -d ::03xx
 
 and matching the reported model to the list of Nvidia GPU codenames.
 
-FamilyTypeDriver Package Turing (NV160) and newerOpennvidia Maxwell (NV110) to Volta (NV140)Proprietarynvidia580 Kepler (NVE0)Proprietarynvidia470 Fermi (NVC0)Proprietarynvidia390 Tesla (NV50) and olderUnsupporteduse nouveau
+|Family|Type|Driver Package|
+|---|---|---|
+|Turing (NV160) and newer|Open|nvidia|
+|Maxwell (NV110) to Volta (NV140)|Proprietary|nvidia580|
+|Kepler (NVE0)|Proprietary|nvidia470|
+|Fermi (NVC0)|Proprietary|nvidia390|
+|Tesla (NV50) and older|Unsupported|use nouveau|
 
 32-bit program support (glibc only)
 

@@ -1,7 +1,7 @@
 ---
 url: https://docs.voidlinux.org/xbps/repositories/mirrors/tor.html
 title: Using Tor Mirrors - The Void Linux Handbook
-words: 415
+words: 416
 ---
 Using Tor Mirrors
 
@@ -9,7 +9,10 @@ Tor is an anonymizing software that bounces traffic via computers all around the
 
 The following Void Linux Mirrors are available on the Tor Network:
 
-RepositoryLocation http://lysator7eknrfl47rlyxvgeamrv7ucefgrrlhk7rouv3sna25asetwid.onion/pub/voidlinux/EU: Sweden http://dotsrccccbidkzg7oc7oj4ugxrlfbt64qebyunxbrgqhxiwj3nl6vcad.onion/EU: Denmark
+|Repository|Location|
+|---|---|
+|http://lysator7eknrfl47rlyxvgeamrv7ucefgrrlhk7rouv3sna25asetwid.onion/pub/voidlinux/|EU: Sweden|
+|http://dotsrccccbidkzg7oc7oj4ugxrlfbt64qebyunxbrgqhxiwj3nl6vcad.onion/|EU: Denmark|
 
 Using XBPS with Tor
 

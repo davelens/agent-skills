@@ -1,7 +1,7 @@
 ---
 url: https://docs.voidlinux.org/installation/live-images/partitions.html
 title: Partitioning Notes - The Void Linux Handbook
-words: 506
+words: 507
 ---
 Partitioning Notes
 
@@ -25,7 +25,12 @@ Swap partitions
 
 A swap partition is not strictly required, but recommended for systems with low RAM. If you want to use hibernation, you will need a swap partition. The following table has recommendations for swap partition size.
 
-System RAMRecommended swap spaceSwap space if using hibernation &lt; 2GB2x the amount of RAM3x the amount of RAM 2-8GBEqual to amount of RAM2x the amount of RAM 8-64GBAt least 4GB1.5x the amount of RAM 64GBAt least 4GBHibernation not recommended
+|System RAM|Recommended swap space|Swap space if using hibernation|
+|---|---|---|
+|&lt; 2GB|2x the amount of RAM|3x the amount of RAM|
+|2-8GB|Equal to amount of RAM|2x the amount of RAM|
+|8-64GB|At least 4GB|1.5x the amount of RAM|
+|64GB|At least 4GB|Hibernation not recommended|
 
 Boot partition (optional)
 

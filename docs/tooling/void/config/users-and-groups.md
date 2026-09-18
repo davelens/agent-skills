@@ -1,7 +1,7 @@
 ---
 url: https://docs.voidlinux.org/config/users-and-groups.html
 title: Users and Groups - The Void Linux Handbook
-words: 341
+words: 342
 ---
 Users and Groups
 
@@ -37,4 +37,34 @@ Default Groups
 
 Void Linux defines a number of groups by default.
 
-GroupDescription rootComplete access to the system. binUnused - present for historical reasons. sysUnused - present for historical reasons. kmemAbility to read from /dev/mem and /dev/port. wheelElevated privileges for specific system administration tasks. ttyAccess to TTY-like devices: /dev/tty, /dev/pts, /dev/vcs. tapeAccess to tape devices. daemonSystem daemons that need to write to files on disk. floppyAccess to floppy drives. diskRaw access to /dev/sd and /dev/loop. lpAccess to printers. dialoutAccess to serial ports. audioAccess to audio devices. videoAccess to video devices. utmpAbility to write to /var/run/utmp, /var/log/wtmp and /var/log/btmp. admUnused - present for historical reasons. This group was traditionally used for system monitoring, such as viewing files in /var/log. cdromAccess to CD devices. opticalAccess to DVD/CD-RW devices. mailUsed by some mail packages, e.g. dma. storageAccess to removable storage devices. scannerAbility to access scanners. networkUsed by some networking-related packages, e.g. connman, NetworkManager, wicd. kvmAbility to use KVM for virtual machines, e.g. via QEMU. inputAccess to input devices: /dev/mouse, /dev/event. plugdevAccess to pluggable devices. nogroupSystem daemons that don't need to own any files. usbmonAccess to /dev/usbmon. usersOrdinary users. xbuilderTo use xbps-uchroot(1) with xbps-src.
+|Group|Description|
+|---|---|
+|root|Complete access to the system.|
+|bin|Unused - present for historical reasons.|
+|sys|Unused - present for historical reasons.|
+|kmem|Ability to read from /dev/mem and /dev/port.|
+|wheel|Elevated privileges for specific system administration tasks.|
+|tty|Access to TTY-like devices: /dev/tty, /dev/pts, /dev/vcs*.|
+|tape|Access to tape devices.|
+|daemon|System daemons that need to write to files on disk.|
+|floppy|Access to floppy drives.|
+|disk|Raw access to /dev/sd and /dev/loop.|
+|lp|Access to printers.|
+|dialout|Access to serial ports.|
+|audio|Access to audio devices.|
+|video|Access to video devices.|
+|utmp|Ability to write to /var/run/utmp, /var/log/wtmp and /var/log/btmp.|
+|adm|Unused - present for historical reasons. This group was traditionally used for system monitoring, such as viewing files in /var/log.|
+|cdrom|Access to CD devices.|
+|optical|Access to DVD/CD-RW devices.|
+|mail|Used by some mail packages, e.g. dma.|
+|storage|Access to removable storage devices.|
+|scanner|Ability to access scanners.|
+|network|Used by some networking-related packages, e.g. connman, NetworkManager, wicd.|
+|kvm|Ability to use KVM for virtual machines, e.g. via QEMU.|
+|input|Access to input devices: /dev/mouse, /dev/event.|
+|plugdev|Access to pluggable devices.|
+|nogroup|System daemons that don't need to own any files.|
+|usbmon|Access to /dev/usbmon*.|
+|users|Ordinary users.|
+|xbuilder|To use xbps-uchroot(1) with xbps-src.|

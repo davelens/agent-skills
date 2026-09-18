@@ -1,7 +1,7 @@
 ---
 url: https://docs.voidlinux.org/config/graphical-session/graphics-drivers/intel.html
 title: Intel - The Void Linux Handbook
-words: 286
+words: 287
 ---
 Intel
 
@@ -19,7 +19,10 @@ Video acceleration
 
 For VA-API, install the intel-video-accel meta-package, which will install all the Intel VA-API drivers. intel-media-driver will be used by default, but this choice can be overridden at runtime via the environment variable LIBVADRIVERNAME:
 
-Driver PackageSupported GPU GenExplicit selection libva-intel-driverup to Coffee LakeLIBVADRIVERNAME=i965 intel-media-driverfrom BroadwellLIBVADRIVERNAME=iHD
+|Driver Package|Supported GPU Gen|Explicit selection|
+|---|---|---|
+|libva-intel-driver|up to Coffee Lake|LIBVADRIVERNAME=i965|
+|intel-media-driver|from Broadwell|LIBVADRIVERNAME=iHD|
 
 For VDPAU, install libvdpau-va-gl. Set the environment variable VDPAUDRIVER to vagl.
 
