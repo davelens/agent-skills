@@ -34,3 +34,4 @@ personal/search-activecollab-history
 personal/search-git-history
 personal/search-gmail
 personal/session-cleanup
+typesafe-ai/skills@typesafe-ai
