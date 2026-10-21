@@ -78,6 +78,19 @@ The default should be how Matt Pocock explains it:
 4. `implement` to start work
 5. `code-review` to match the work against the spec, or catch any bugs
 
+## Preparing a Pi goal
+
+Invoke `/skill:prepare-goal` with the goal you want to prepare. The
+[prepare-goal skill](personal/prepare-goal/SKILL.md) uses your named,
+fetchable, directly comparable reference, or offers two or three concrete
+candidates. It drafts a finite acceptance checklist with exact checks and
+pass conditions that compare against the actual reference.
+
+You explicitly approve the reference and checklist together before it
+returns a paste-ready `/goal` command in a fenced block. It prepares the
+command only; execution and lifecycle controls belong to Pi's `/goal`
+extension.
+
 ## Adding a personal skill
 
 1. Create `personal/<skill-name>/SKILL.md` with YAML frontmatter
