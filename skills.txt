@@ -24,8 +24,8 @@ mattpocock/skills@writing-for-agents
 personal/add-flexible-content-type
 personal/brief-pipeline
 personal/docs-reference
-personal/gauntlet-loop
 personal/ketch
+personal/prepare-goal
 personal/project-conventions
 personal/project-memory
 personal/project-wiki
