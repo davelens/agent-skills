@@ -36,4 +36,12 @@ Classify each listed requirement:
 
 **Done:** every requirement from step 1 is marked done, answered, or open, and the report back says which.
 
-When the user asks for a client reply, write it per the project's client-communication conventions.
+## Client reply
+
+When the user asks for a client reply, write it per the project's client-communication conventions as plain text (no Markdown) to `tmp/client-reply.md`, then copy it to the user's clipboard:
+
+```bash
+if [ -n "$TMUX" ]; then tmux load-buffer -w tmp/client-reply.md; else wl-copy < tmp/client-reply.md; fi
+```
+
+`tmux load-buffer -w` reaches the clipboard of the terminal the user is attached from, including over SSH. Tell the user it is on their clipboard, and show the reply as a plain paragraph, not a blockquote.
