@@ -1,11 +1,11 @@
 ---
 name: search-git-history
-description: Recover history from a git repo or GitHub project — when a file/symbol was added or removed, who changed what, why a PR landed. Use when the user asks "when was X removed/added", "who changed Y", "history of Z", or any commit-log / blame / PR forensics question. Covers both local `git` and GitHub via `gh` CLI.
+description: Recover history from a git repo, GitHub or Forgejo project — when a file/symbol was added or removed, who changed what, why a PR landed. Use when the user asks "when was X removed/added", "who changed Y", "history of Z", or any commit-log / blame / PR forensics question. Covers local `git`, GitHub via `gh` CLI, and Forgejo via `fj` CLI.
 ---
 
 # search-git-history
 
-History forensics on git repos and GitHub projects. Current code search (grep, ripgrep, `ketch code`) shows what *is*. This skill shows what *was* and *why it changed*.
+History forensics on git repos, GitHub and Forgejo projects. Pick the forge from `git remote -v`: `github.com` → `gh`; any other self-hosted host (e.g. `jorge.tailc9ad15.ts.net`) → Forgejo section below. Current code search (grep, ripgrep, `ketch code`) shows what *is*. This skill shows what *was* and *why it changed*.
 
 ## When to Use
 
@@ -89,13 +89,39 @@ gh pr list --repo <owner>/<repo> --author <user> --state all --limit 50
 gh issue list --repo <owner>/<repo> --search "<terms>" --state all
 ```
 
+## Forgejo (`fj` CLI)
+
+Pass `-H <host>` unless run inside a clone whose remote points at the host. Repos are `<owner>/<repo>`, PR/issue IDs are `<owner>/<repo>#<num>`. `fj auth list` shows logged-in hosts.
+
+```bash
+fj -H <host> repo clone <owner>/<repo> /tmp/<repo>    # full history
+
+fj -H <host> pr search -r <owner>/<repo> -s all "<terms>"   # also -c <creator>, -l <labels>, --all
+fj -H <host> pr view <owner>/<repo>#<num> body              # title, author, state, branches, body
+fj -H <host> pr view <owner>/<repo>#<num> comments
+fj -H <host> pr view <owner>/<repo>#<num> diff              # also: files, commits
+
+fj -H <host> issue search -r <owner>/<repo> -s all "<terms>"
+fj -H <host> issue view <owner>/<repo>#<num> comments
+```
+
+`fj` has no commit→PR lookup or raw API command; use `curl` with the token `fj` stores:
+
+```bash
+T=$(jq -r --arg h <host> '.hosts[$h].token' ~/.local/share/forgejo-cli/keys.json)
+curl -s -H "Authorization: token $T" \
+  "https://<host>/api/v1/repos/<owner>/<repo>/commits/<sha>/pull" | jq '{number, html_url, merged_at}'
+```
+
+Never print the token. The API rejects unauthenticated calls.
+
 ## Workflow for "when was X removed?"
 
 1. Clone repo to `/tmp/<repo>` (full history, not shallow).
 2. `git log --all --diff-filter=D --oneline -- '*X*'` → get sha.
 3. `git show --stat <sha>` → confirm scope, get author + date.
-4. Map sha → PR via `gh api repos/.../commits/<sha>/pulls`.
-5. `gh pr view <num> --comments` → recover rationale.
+4. Map sha → PR via `gh api repos/.../commits/<sha>/pulls` (Forgejo: `curl .../commits/<sha>/pull`).
+5. `gh pr view <num> --comments` (Forgejo: `fj pr view <owner>/<repo>#<num> comments`) → recover rationale.
 6. Report: when, who, PR number, motivation summary, what else dropped in same commit.
 
 ## Gotchas
@@ -104,7 +130,9 @@ gh issue list --repo <owner>/<repo> --search "<terms>" --state all
 - **Force-pushed branches:** `git log --all` covers refs you have; if upstream rewrote history, fetch `refs/pull/*/head` via `git fetch origin '+refs/pull/*/head:refs/remotes/origin/pr/*'` to inspect closed PRs.
 - **`--follow` only takes one path.** For renames across multiple files, use pickaxe (`-S`/`-G`) instead.
 - **`gh` needs auth.** `gh auth status` to verify. Public-repo reads work without scopes; PR comments may need them.
-- **Date in commit ≠ merge date.** `%ai` is author date, `%ci` is committer date; PR merge timestamp comes from `gh pr view --json mergedAt`.
+- **Forgejo PR refs:** fetch closed PR heads with `git fetch origin '+refs/pull/*/head:refs/remotes/origin/pr/*'` (same layout as GitHub).
+- **Date in commit ≠ merge date.** `%ai` is author date, `%ci` is committer date; PR merge timestamp comes from `gh pr view --json mergedAt` (Forgejo: `merged_at` from the API).
+- **Forgejo commit→PR only matches the PR's merge commit sha.** For a PR's own commits (head or mid-branch), find the merge first with `git log --merges --ancestry-path --reverse --format=%H <sha>..<branch> | head -1` and look that up.
 
 ## Format Cheatsheet (`--format` / `--pretty`)
 
