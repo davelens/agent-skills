@@ -27,10 +27,10 @@ Include:
 
 1. exact uncached input, cache reads/writes, output, reasoning, total, cost, context window, and percentages from `initial`
 2. the next provider call's cache-hit percentage when present
-3. visible skill count, instruction bytes, active/provider tool counts, tool bytes grouped by source, and largest tools from `probe`
+3. visible skill count, instruction bytes per prompt section, active/provider tool counts, tool bytes grouped by source, and largest tools from `probe`
 4. every `context_file_drift` entry changed after the initial request
 5. ranked reductions based on the largest contributors
 
-State plainly that OpenAI/Pi stores only aggregate input usage. Never present bytes, local tokenizer counts, or ablation deltas as an exact provider token allocation by component.
+State plainly that Pi stores only aggregate input usage. Never present bytes, local tokenizer counts, or ablation deltas as an exact provider token allocation by component.
 
 If `probe.error` is present, report the exact initial usage anyway and explain that contributor inspection failed.

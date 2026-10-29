@@ -37,6 +37,7 @@ live in the owning skill, not here.
 - Do not overwrite, revert, or remove user changes unless explicitly requested
 - Edits inside the project root are always allowed; ask before editing anything outside it
 - Never run destructive commands (e.g. `rm -rf`) against paths outside the project root
+- Write careful tests before every feature, and run all tests before you say that you're done.
 - Before installing packages or running install scripts:
   - Verify point of origin
   - Check official registry page

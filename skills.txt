@@ -26,6 +26,7 @@ personal/brief-pipeline
 personal/docs-reference
 personal/ketch
 personal/prepare-goal
+personal/process-ac-task
 personal/project-conventions
 personal/project-memory
 personal/project-wiki
