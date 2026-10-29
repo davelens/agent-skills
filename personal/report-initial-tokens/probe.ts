@@ -6,17 +6,18 @@ let audit: Record<string, unknown> = {};
 
 export default function (pi: ExtensionAPI) {
   pi.on("before_agent_start", (event) => {
-    audit = {
-      systemPrompt: event.systemPrompt,
-      systemPromptOptions: event.systemPromptOptions,
-      activeTools: pi.getActiveTools(),
-      allTools: pi.getAllTools(),
-    };
+    audit = { systemPromptOptions: event.systemPromptOptions };
   });
 
-  pi.on("before_provider_request", (event) => {
+  // Runs before every provider call on every transport, unlike before_provider_request.
+  pi.on("context_with_system", (event) => {
     if (!output) process.exit(2);
-    writeFileSync(output, JSON.stringify({ ...audit, payload: event.payload }));
+    writeFileSync(output, JSON.stringify({
+      ...audit,
+      system: event.messages.find((message) => message.role === "system"),
+      activeTools: pi.getActiveTools(),
+      allTools: pi.getAllTools(),
+    }));
     chmodSync(output, 0o600);
     process.exit(0);
   });

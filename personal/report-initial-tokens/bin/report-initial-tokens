@@ -5,7 +5,6 @@ import argparse
 import json
 import os
 from pathlib import Path
-import shlex
 import shutil
 import subprocess
 import tempfile
@@ -108,18 +107,12 @@ def run_probe(skill_dir):
     os.close(descriptor)
     Path(capture_name).unlink()
     env = {**os.environ, 'PI_INITIAL_TOKENS_CAPTURE': capture_name, 'TERM': os.environ.get('TERM', 'xterm-256color')}
-    command = [executable, '--no-session', '-e', str(skill_dir / 'probe.ts'), 'Hi']
+    command = [executable, '--no-session', '-p', '-e', str(skill_dir / 'probe.ts'), 'Hi']
     try:
-        script = shutil.which('script')
-        if script:
-            result = subprocess.run(
-                [script, '-qefc', shlex.join(command), '/dev/null'],
-                cwd=Path.cwd(), env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30,
-            )
-        else:
-            result = subprocess.run(
-                command, cwd=Path.cwd(), env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30,
-            )
+        result = subprocess.run(
+            command, cwd=Path.cwd(), env=env, stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30,
+        )
         if result.returncode or not Path(capture_name).is_file():
             return {'error': f'probe exited with status {result.returncode}'}
         return json.loads(Path(capture_name).read_text(encoding='utf-8'))
@@ -143,14 +136,14 @@ def analyze_probe(capture, initial_timestamp):
     if 'error' in capture:
         return capture
 
-    base = capture.get('systemPrompt', '')
-    payload = capture.get('payload', {})
-    final = payload.get('instructions', '')
+    system = capture.get('system') or {}
+    sections = system.get('sections') or {}
     options = capture.get('systemPromptOptions', {})
     all_tools = {tool.get('name'): tool for tool in capture.get('allTools', [])}
+    provider_tools = system.get('toolsAdded', [])
     groups = {}
     largest = []
-    for tool in payload.get('tools', []):
+    for tool in provider_tools:
         name = tool.get('name', '<unnamed>')
         metadata = all_tools.get(name, {})
         source = metadata.get('sourceInfo', {}).get('source', 'unknown')
@@ -161,16 +154,6 @@ def analyze_probe(capture, initial_timestamp):
         group['names'].append(name)
         largest.append({'name': name, 'source': source, 'serialized_bytes': size})
 
-    context_at = base.find('<project_context>')
-    skills_at = base.find('The following skills provide specialized instructions')
-    sections = {}
-    if context_at >= 0 and skills_at >= 0:
-        sections = {
-            'pi_core_bytes': byte_count(base[:context_at]),
-            'project_context_bytes': byte_count(base[context_at:skills_at]),
-            'skill_catalog_bytes': byte_count(base[skills_at:]),
-        }
-
     drift = []
     for context_file in options.get('contextFiles', []):
         path = Path(context_file.get('path', ''))
@@ -180,30 +163,15 @@ def analyze_probe(capture, initial_timestamp):
         if initial_timestamp and mtime_ms > initial_timestamp:
             drift.append({'path': str(path), 'mtime_ms': mtime_ms, 'changed_after_initial': True})
 
-    visible = base.count('  <skill>\n')
-    injection_sections = {}
-    if final.startswith(base):
-        injections = final[len(base):]
-        startup_at = injections.find('<startup_skill_loader>')
-        ponytail_at = injections.find('PONYTAIL MODE ACTIVE')
-        if startup_at >= 0:
-            injection_sections['startup_skill_loader_bytes'] = byte_count(
-                injections[startup_at:ponytail_at if ponytail_at >= 0 else None]
-            )
-        if ponytail_at >= 0:
-            injection_sections['ponytail_bytes'] = byte_count(injections[ponytail_at:])
-
+    section_bytes = {name: byte_count(text) for name, text in sections.items()}
     return {
         'scope': 'new session using current files and extensions; no provider request sent',
-        'base_instruction_bytes': byte_count(base),
-        'final_instruction_bytes': byte_count(final),
-        'extension_injection_bytes': byte_count(final[len(base):]) if final.startswith(base) else None,
-        'instruction_sections': sections,
-        'known_injection_sections': injection_sections,
+        'instruction_bytes': byte_count(system.get('content')) + sum(section_bytes.values()),
+        'instruction_sections': dict(sorted(section_bytes.items(), key=lambda item: item[1], reverse=True)),
         'discovered_skills': len(options.get('skills', [])),
-        'visible_skill_catalog_entries': visible,
+        'visible_skill_catalog_entries': sections.get('skills', '').count('<skill>'),
         'active_tools': len(capture.get('activeTools', [])),
-        'provider_tools': len(payload.get('tools', [])),
+        'provider_tools': len(provider_tools),
         'tools_by_source': dict(sorted(groups.items(), key=lambda item: item[1]['serialized_bytes'], reverse=True)),
         'largest_tools': sorted(largest, key=lambda item: item['serialized_bytes'], reverse=True)[:10],
         'context_file_drift': drift,
@@ -229,8 +197,8 @@ def build_report(session, probe=False):
     }
     if len(calls) > 1:
         second = usage_report(calls[1][1], window)
-        denominator = second['uncached_input'] + second['cache_read']
-        second['cache_hit_percent'] = second['cache_read'] / denominator * 100 if denominator else None
+        prompt = second['prompt_tokens']
+        second['cache_hit_percent'] = second['cache_read'] / prompt * 100 if prompt else None
         report['next_provider_call'] = second
     if probe:
         skill_dir = Path(__file__).resolve().parent.parent
