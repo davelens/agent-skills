@@ -20,8 +20,8 @@ Python's standard library is sufficient; no dotpm process or OAuth credentials a
 import sqlite3
 from pathlib import Path
 
-path = Path("~/.config/dotpm/dotpm.db")
-con = sqlite3.connect(path.resolve().as_uri() + "?mode=ro")
+path = Path("~/.config/dotpm/dotpm.db").expanduser()
+con = sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)
 con.row_factory = sqlite3.Row
 try:
     for table in ("users", "emails"):
