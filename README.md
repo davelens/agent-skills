@@ -94,14 +94,63 @@ extension.
 ## Planning large work in slices
 
 `/skill:kickoff` turns a software migration or a medium-sized goal into a
-plan of slices, each small enough for one `/goal` run. A migration gets
-`docs/migration/` (roadmap with a `Next:` line, status log, per-namespace
-maps and entry-point ledgers); a goal gets `docs/briefs/<slug>-plan.md`.
-Both get the first brief and its `/goal` command on the clipboard.
+plan of slices, each small enough for one `/goal` run, and writes the first
+brief. `/skill:next-slice` resumes the plan in any later session: it reads
+the plan's `Next:` line and the briefs' `## Outcome` lines, writes the next
+brief and copies its `/goal` command. The text after `/skill:<name>` is the
+ask.
 
-`/skill:next-slice` resumes any plan: it reads the plan's `Next:` line and
-the briefs' `## Outcome` lines, writes the next brief and copies its
-`/goal` command.
+### Starting a migration
+
+Run it from the target repository (it may be empty) and describe the port:
+
+```text
+/skill:kickoff Port ~/Repositories/blimp/oximo (Rails 8, MySQL) to Phoenix + PostgreSQL.
+Functional parity ~100%, visual ≥95%, Bootstrap 5.3, no Tailwind. Backend first, then frontend.
+A copy runs on :3020 with a fresh dump and may serve as the oracle.
+```
+
+1. It reads the repository, classifies the ask as a **migration** and finds
+   what it can by looking: the source commit, databases and versions.
+2. It asks **one round of questions**, its recommendation first: the pin,
+   the oracle and its allowed requests, structural or data parity,
+   namespaces and their order, decision delegation.
+3. It scouts the source and proposes the roadmap: bootstrap, then per
+   namespace analysis → parity harness → cards → closure, then QA and
+   final reconciliation.
+4. **You approve** the roadmap or ask for changes.
+5. It writes `docs/briefs/initial.md`, `docs/memory/*`,
+   `docs/migration/{roadmap,status}.md`, a map stub per namespace and the
+   `AGENTS.md` lines.
+6. It writes the first brief (e.g. `docs/briefs/boot01-goal.md`) and puts
+   `/goal docs/briefs/boot01-goal.md` on the clipboard.
+
+### Starting a medium goal
+
+```text
+/skill:kickoff Add multi-currency pricing to the webshop: EUR/GBP, per-customer currency,
+invoices in the customer's currency. Compare against Adyen's currency docs.
+```
+
+The same flow with fewer questions (the definition of done, the reference,
+out of scope, delegation, systems not to touch). It writes 2–8 slices to
+`docs/briefs/multi-currency-plan.md` and the first brief
+`multi-currency-01-goal.md`, with its `/goal` on the clipboard. An ask that
+fits one `/goal` run gets that single brief and no plan.
+
+### The loop after kickoff
+
+```text
+/goal docs/briefs/<first>-goal.md      # paste from clipboard; runs until done/blocked
+/skill:git-commit                      # commit the slice (kickoff/next-slice never commit)
+/skill:next-slice                      # writes the next brief, copies its /goal
+/goal docs/briefs/<next>-goal.md
+…
+```
+
+Each finished slice moves the plan's `Next:` line, so a fresh session needs
+only `/skill:next-slice`. With several open plans, name one:
+`/skill:next-slice multi-currency`.
 
 ## Adding a personal skill
 
