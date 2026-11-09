@@ -91,6 +91,18 @@ returns a paste-ready `/goal` command in a fenced block. It prepares the
 command only; execution and lifecycle controls belong to Pi's `/goal`
 extension.
 
+## Planning large work in slices
+
+`/skill:kickoff` turns a software migration or a medium-sized goal into a
+plan of slices, each small enough for one `/goal` run. A migration gets
+`docs/migration/` (roadmap with a `Next:` line, status log, per-namespace
+maps and entry-point ledgers); a goal gets `docs/briefs/<slug>-plan.md`.
+Both get the first brief and its `/goal` command on the clipboard.
+
+`/skill:next-slice` resumes any plan: it reads the plan's `Next:` line and
+the briefs' `## Outcome` lines, writes the next brief and copies its
+`/goal` command.
+
 ## Adding a personal skill
 
 1. Create `personal/<skill-name>/SKILL.md` with YAML frontmatter

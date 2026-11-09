@@ -25,6 +25,8 @@ personal/add-flexible-content-type
 personal/brief-pipeline
 personal/docs-reference
 personal/ketch
+personal/kickoff
+personal/next-slice
 personal/populate-raamwinkel-pages
 personal/prepare-goal
 personal/process-ac-task

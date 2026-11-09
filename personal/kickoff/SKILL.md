@@ -1,0 +1,34 @@
+---
+name: kickoff
+description: Start a sliced plan (a software migration or a medium-sized goal) with its docs structure and first `/goal` brief.
+disable-model-invocation: true
+---
+
+# Kickoff
+
+Turn a large ask into a **plan** of slices small enough for one `/goal` run each, set up the documents that let `/skill:next-slice` resume it in any later session, and write the first brief. Plan; leave building to `/goal`.
+
+Plans, the `Next:` line and brief status are defined in [next-slice](../next-slice/SKILL.md#plans); briefs follow its [brief format](../next-slice/BRIEF.md).
+
+## Steps
+
+1. **Read the ground.** Read `AGENTS.md` and the documents it marks mandatory, list `docs/`, and find the project's full check command (`bin/check`, `mix test`, `npm test`, …) or note that none exists. If an open plan exists (`docs/migration/roadmap.md` or `docs/briefs/*-plan.md` whose `Next:` is not `none`), stop and point to `/skill:next-slice`, unless the user asked for a new, separate plan. Done when you know the repository's conventions and its open plans.
+
+2. **Classify the ask.**
+   - **Migration**: rebuild an existing system (the source) in another language, framework or database with parity. Follow [MIGRATION.md](MIGRATION.md).
+   - **Goal**: a bounded change in this repository, too large for one `/goal` run. Follow [GOAL.md](GOAL.md).
+   - **Single slice**: it fits one run by the [sizing](../next-slice/BRIEF.md#sizing). Write that one brief by steps 3–6 of next-slice and stop.
+
+   Confirm the class with the user when the ask does not make it plain. Done when the class is stated.
+
+3. **Pin the reference and constraints.** Find by looking whatever looking can settle: source paths and commits, running copies, databases, test suites, toolchain versions, existing conventions. Then ask the mode file's questions that remain open, in one round, with your recommendation first. Done when every question has an answer or a recorded default.
+
+4. **Scout and cut.** Read enough of the source or codebase to cut along real boundaries: namespaces, entry points, business areas. Follow the mode file's cutting rules. Done when every part of the ask maps to a milestone or slice, every milestone has a gate with a command, and the order respects dependencies.
+
+5. **Get approval.** Show the plan in one compact view: milestones or slices with their gates, namespaces, decision authority and safety rules. Wait for explicit approval; revise on feedback. Done when the user approves.
+
+6. **Write the structure.** Create every file in the mode file's layout, add its lines to `AGENTS.md`, and record durable rules through the `project-memory` skill. Done when each layout file exists and the plan's `Next:` names the first slice.
+
+7. **Write the first brief.** Run steps 3–5 of [next-slice](../next-slice/SKILL.md) for the slice in `Next:`. Done when the brief exists and its `/goal` command is on the clipboard.
+
+8. **Report.** List the files created, the milestones or slices in one line each, the decisions taken and their authority, and that the command is on the clipboard. Leave everything uncommitted for the user.
