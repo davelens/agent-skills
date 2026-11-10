@@ -33,7 +33,7 @@ live in the owning skill, not here.
 - Bash section headers may use simple decorative borders
 - Never `git push` without asking
 - Never write to `.claude/` or `.opencode/`
-- Never call `AskClaude` unless the user explicitly asks to use Claude or AskClaude in their current message. Never use it automatically for reviews, validation, fallback, planning, or task completion
+- Never call `AskClaude` unless the user asks; never use it automatically
 - Do not overwrite, revert, or remove user changes unless explicitly requested
 - Edits inside the project root are always allowed; ask before editing anything outside it
 - Never run destructive commands (e.g. `rm -rf`) against paths outside the project root
