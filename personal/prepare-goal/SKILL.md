@@ -5,7 +5,7 @@ description: Prepare a paste-ready Pi /goal command with an approved comparison 
 
 # Prepare Goal
 
-Turn the user's goal into one command they can paste into Pi. Prepare the goal; leave execution and lifecycle controls to Pi's `/goal` extension.
+Turn the user's goal into one command they can paste into Pi. Prepare the goal; leave execution and lifecycle controls to the `/goal` command from the `plan-loop` extension in `pi-config`.
 
 A goal too large for one `/goal` run ([sizing](../next-slice/BRIEF.md#sizing)) needs a plan: point to `/skill:kickoff` and stop.
 

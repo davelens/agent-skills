@@ -88,8 +88,8 @@ pass conditions that compare against the actual reference.
 
 You explicitly approve the reference and checklist together before it
 returns a paste-ready `/goal` command in a fenced block. It prepares the
-command only; execution and lifecycle controls belong to Pi's `/goal`
-extension.
+command only; execution and lifecycle controls belong to the `/goal`
+command from the `plan-loop` extension in `pi-config`.
 
 ## Planning large work in slices
 
