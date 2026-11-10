@@ -136,7 +136,8 @@ The same flow with fewer questions (the definition of done, the reference,
 out of scope, delegation, systems not to touch). It writes 2–8 slices to
 `docs/briefs/multi-currency-plan.md` and the first brief
 `multi-currency-01-goal.md`, with its `/goal` on the clipboard. An ask that
-fits one `/goal` run gets that single brief and no plan.
+fits one `/goal` run gets that single brief and no plan; one small enough
+to finish in a few edits gets no files at all, only an offer to do it now.
 
 ### The loop after kickoff
 

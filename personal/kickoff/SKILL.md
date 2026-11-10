@@ -18,6 +18,8 @@ Plans, the `Next:` line and brief status are defined in [next-slice](../next-sli
    - **Migration**: rebuild an existing system (the source) in another language, framework or database with parity. Follow [MIGRATION.md](MIGRATION.md).
    - **Goal**: a bounded change in this repository, too large for one `/goal` run. Follow [GOAL.md](GOAL.md).
    - **Single slice**: it fits one run by the [sizing](../next-slice/BRIEF.md#sizing). Write that one brief by steps 3–6 of next-slice and stop.
+   - **Direct**: a few edits finishable in this session with no acceptance checklist worth writing (a typo, a rename, a config value, a
+     one-file fix). Write no files; say it needs no brief or `/goal`, and do it now.
 
    Confirm the class with the user when the ask does not make it plain. Done when the class is stated.
 
