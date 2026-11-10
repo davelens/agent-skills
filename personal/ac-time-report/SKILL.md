@@ -1,5 +1,5 @@
 ---
-name: activecollab-time-report
+name: ac-time-report
 description: Generate copy-ready work summaries from ActiveCollab time records in the local ac-tui SQLite cache. Use when the user asks for ActiveCollab time records, time reports, status summaries, work done in a date range, or output grouped per task.
 ---
 

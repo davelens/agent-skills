@@ -1,5 +1,5 @@
 ---
-name: process-ac-task
+name: ac-process-task
 description: Read and process an ActiveCollab task by ID, including its comments and attachments. Use when the user says "process", "investigate", "look at", or "figure out" an AC task, or points at a specific comment (#N) on one.
 ---
 
@@ -15,7 +15,7 @@ ac-tui --task <task id>
 
 This refreshes the task from the API and prints its name, HTML body, every comment oldest first as `## Comment #N by <author>, <date>`, and each attachment as `- <name>: <local path>`. When the user says "comment #N", they mean that number in this output.
 
-- `task ... not in cache`: run `ac-tui --sync <project id>` (look up the project via `search-activecollab-history` if unknown), then retry.
+- `task ... not in cache`: run `ac-tui --sync <project id>` (look up the project via `ac-search-history` if unknown), then retry.
 - `refresh failed; showing cached data`: continue, but tell the user that the comments may be stale.
 
 Read the attachments from the printed paths. Read images directly. Extract `.docx`/`.xlsx` (ZIP archives) into a scratch `tmp/ac-<task id>/` directory inside the project; keep the cache files untouched.
@@ -24,7 +24,7 @@ Read the attachments from the printed paths. Read images directly. Extract `.doc
 
 ## 2. Recover history
 
-Run `git log --all -i --grep "AC-<task id>"` for earlier work on the same task. When the user doubts an earlier decision or the brief contradicts current behaviour, search older tasks and comments with `search-activecollab-history` before changing anything.
+Run `git log --all -i --grep "AC-<task id>"` for earlier work on the same task. When the user doubts an earlier decision or the brief contradicts current behaviour, search older tasks and comments with `ac-search-history` before changing anything.
 
 ## 3. Act on each requirement
 
