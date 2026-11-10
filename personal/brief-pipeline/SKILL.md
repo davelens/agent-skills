@@ -1,6 +1,7 @@
 ---
 name: brief-pipeline
-description: "Gated brief execution: scout → planner → approval → worker. Use when executing docs/briefs/ or when another skill needs implementation from a spec."
+description: "Gated brief execution of a docs/briefs/ spec: scout → planner → approval → worker."
+disable-model-invocation: true
 ---
 
 Pipeline: **brief** → `scout` → `planner` → **gate** → `worker`. You are the orchestrator. The brief is authoritative; child reports supplement it.
