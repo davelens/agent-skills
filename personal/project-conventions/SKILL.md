@@ -15,7 +15,7 @@ live in the owning skill, not here.
 
 | Path | Holds | Owner |
 |------|-------|-------|
-| `CONTEXT.md` | domain glossary (ubiquitous language) | `grill-with-docs` |
+| `GLOSSARY.md` | domain glossary (ubiquitous language) | `grill-with-docs` |
 | `docs/adr/` | decision records (why we chose X) | `grill-with-docs` |
 | `docs/briefs/` | agent briefs / task prompts (intent *before* build) | user |
 | `docs/memory/` | living project-wide facts, constraints, conventions | `project-memory` |
