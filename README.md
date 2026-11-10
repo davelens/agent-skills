@@ -152,6 +152,11 @@ Each finished slice moves the plan's `Next:` line, so a fresh session needs
 only `/skill:next-slice`. With several open plans, name one:
 `/skill:next-slice multi-currency`.
 
+`/plan-loop [plan] [--max N]` (the `plan-loop` extension in `pi-config`)
+runs that loop unattended, each phase in a new session, and commits every
+slice. It waits when a goal is blocked, no brief was written or the commit
+is missing; `/plan-loop step` retries and `/plan-loop stop` ends it.
+
 ## Adding a personal skill
 
 1. Create `personal/<skill-name>/SKILL.md` with YAML frontmatter
