@@ -1,6 +1,6 @@
 ---
 name: kickoff
-description: Start any task: do a small one directly, or turn it into one `/goal` brief or a plan of slices (a goal or a software migration) with its docs structure and first brief.
+description: Start any task. Do a small one directly, or turn it into one `/goal` brief or a plan of slices (a goal or a software migration) with its docs structure and first brief.
 disable-model-invocation: true
 ---
 
