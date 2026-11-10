@@ -14,10 +14,11 @@ mattpocock/skills@tdd
 mattpocock/skills@wayfinder
 mattpocock/skills@wait-what
 mattpocock/skills@writing-for-agents
-personal/add-flexible-content-type
 personal/brief-pipeline
 personal/docs-reference
 personal/ketch
+personal/kickoff
+personal/next-slice
 personal/prepare-goal
 personal/process-ac-task
 personal/project-conventions
