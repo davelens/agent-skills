@@ -15,6 +15,7 @@ mattpocock/skills@wayfinder
 mattpocock/skills@wait-what
 mattpocock/skills@writing-for-agents
 personal/ac-process-task
+personal/ac-read-task
 personal/ac-search-history
 personal/ac-time-report
 personal/brief-pipeline
