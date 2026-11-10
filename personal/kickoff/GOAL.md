@@ -6,7 +6,7 @@ record: no separate status log.
 ## Questions
 
 - The outcome in one sentence, and how the user will judge it done.
-- The reference to compare against: a spec, issue, design, existing feature or upstream document, named and fetchable.
+- The reference to compare against: a spec, issue, design, existing feature or upstream document, named and fetchable. When the user names none, offer two or three concrete candidates.
 - What is out of scope.
 - Decision authority: delegate blocking decisions, or ask.
 - Systems that must not be touched and integrations to fake.

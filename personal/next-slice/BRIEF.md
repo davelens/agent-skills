@@ -19,9 +19,12 @@ Slicing.
    here; "trace" or "find out" only for what needs running the slice itself.
 4. **`## Decisions`**: each choice marked `approved by the user` or `approved by delegation`, with its reason; repairs versus kept-as-source;
    the safety scope (systems touched, writes allowed, integrations faked) copied from the project's safety rules.
-5. **`## Reference`**: the source checkout at the pin, the oracle, a spec, an upstream document.
+5. **`## Reference`**: the source checkout at the pin, the oracle, a spec, an upstream document. Named, fetchable and directly comparable:
+   a specific artifact, product, repository or publication. The run obtains the actual reference and compares against it directly.
 6. **`## Inventory`** (optional): a table of the entry points in scope.
-7. **`## Acceptance checklist`**: numbered items, each with `Check:` (an exact command or observation) and `Pass:` (its condition). Order:
+7. **`## Acceptance checklist`**: finite, scoped, numbered items, each with `Check:` (an exact command or observation against the actual
+   reference or implementation tests; UI checks can require same-state, same-viewport captures) and `Pass:` (its condition). Include the
+   user's measurable requirements; add no cost ceiling unless asked. Order:
    tests first, no real integration traffic, parity against the Reference, browser or end-to-end, records. The last item is always the
    records: this brief's Outcome, the plan's slice row and its `Next:` line, the project's evidence record and status log where it keeps
    them (a migration does), then the project's full check command. Pass: exit 0.

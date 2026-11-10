@@ -19,7 +19,6 @@ personal/docs-reference
 personal/ketch
 personal/kickoff
 personal/next-slice
-personal/prepare-goal
 personal/process-ac-task
 personal/project-conventions
 personal/project-memory

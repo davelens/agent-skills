@@ -1,12 +1,12 @@
 ---
 name: kickoff
-description: Start a sliced plan (a software migration or a medium-sized goal) with its docs structure and first `/goal` brief.
+description: Start any task: do a small one directly, or turn it into one `/goal` brief or a plan of slices (a goal or a software migration) with its docs structure and first brief.
 disable-model-invocation: true
 ---
 
 # Kickoff
 
-Turn a large ask into a **plan** of slices small enough for one `/goal` run each, set up the documents that let `/skill:next-slice` resume it in any later session, and write the first brief. Plan; leave building to `/goal`.
+Start any task. Do a small one directly; otherwise write one brief for a `/goal` run, or turn a large ask into a **plan** of slices small enough for one `/goal` run each, set up the documents that let `/skill:next-slice` resume it in any later session, and write the first brief. Beyond direct tasks, plan and leave building to `/goal`.
 
 Plans, the `Next:` line and brief status are defined in [next-slice](../next-slice/SKILL.md#plans); briefs follow its [brief format](../next-slice/BRIEF.md).
 
@@ -17,7 +17,7 @@ Plans, the `Next:` line and brief status are defined in [next-slice](../next-sli
 2. **Classify the ask.**
    - **Migration**: rebuild an existing system (the source) in another language, framework or database with parity. Follow [MIGRATION.md](MIGRATION.md).
    - **Goal**: a bounded change in this repository, too large for one `/goal` run. Follow [GOAL.md](GOAL.md).
-   - **Single slice**: it fits one run by the [sizing](../next-slice/BRIEF.md#sizing). Write that one brief by steps 3–6 of next-slice and stop.
+   - **Single slice**: it fits one run by the [sizing](../next-slice/BRIEF.md#sizing). Pin its reference by step 3, write that one brief by steps 3–4 of next-slice, show its Reference and Acceptance checklist and wait for explicit approval of both. Then call the `goal_start` tool with the brief's path, report the brief's path and its acceptance items in one line each, and stop: the goal starts in this session when the turn ends. Without that tool, copy and report by steps 5–6 of next-slice instead.
    - **Direct**: a few edits finishable in this session with no acceptance checklist worth writing (a typo, a rename, a config value, a
      one-file fix). Write no files; say it needs no brief or `/goal`, and do it now.
 
