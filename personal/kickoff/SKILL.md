@@ -12,7 +12,7 @@ Plans, the `Next:` line and brief status are defined in [next-slice](../next-sli
 
 ## Steps
 
-1. **Read the ground.** Read `AGENTS.md` and the documents it marks mandatory, list `docs/`, and find the project's full check command (`bin/check`, `mix test`, `npm test`, …) or note that none exists. If an open plan exists (`docs/migration/roadmap.md` or `docs/briefs/*-plan.md` whose `Next:` is not `none`), stop and point to `/skill:next-slice`, unless the user asked for a new, separate plan. Done when you know the repository's conventions and its open plans.
+1. **Read the ground.** Read `AGENTS.md` and the documents it marks mandatory, list `docs/`, and find the project's full check command (`bin/check`, `mix test`, `npm test`, …) or note that none exists. If an [open plan](../next-slice/SKILL.md#plans) exists, stop and point to `/skill:next-slice`, unless the user asked for a separate plan. Done when you know the repository's conventions and its open plans.
 
 2. **Classify the ask.**
    - **Migration**: rebuild an existing system (the source) in another language, framework or database with parity. Follow [MIGRATION.md](MIGRATION.md).

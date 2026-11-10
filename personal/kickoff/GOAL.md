@@ -1,7 +1,7 @@
 # Goal mode
 
-A goal is a bounded change in this repository, too large for one `/goal` run. Its plan is `docs/briefs/<slug>-plan.md`, its slices are
-`docs/briefs/<slug>-NN-goal.md`, and each brief's Outcome is its evidence record: no separate status log.
+A goal's plan is `docs/briefs/<slug>-plan.md`, its slices are `docs/briefs/<slug>-NN-goal.md`, and each brief's Outcome is its evidence
+record: no separate status log.
 
 ## Questions
 
@@ -48,12 +48,12 @@ Next: <SLUG>-01 — <one line>
 
 ## Done when
 
+The last slice's acceptance checklist adds these and removes this plan's line from `AGENTS.md`.
+
 1. <final check for the whole goal> — Check: <command>. Pass: <condition>.
 ```
 
-The last slice's acceptance checklist includes Done when. Each slice's closing item links its brief, sets its row to `done (<date>)` and moves `Next:`.
-
-`AGENTS.md` gets one line, removed when `Next:` becomes `none`:
+`AGENTS.md` gets one line:
 
 ```markdown
 Active plan: `docs/briefs/<slug>-plan.md` (resume with `/skill:next-slice`).

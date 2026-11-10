@@ -94,8 +94,8 @@ Default order. Drop what does not apply; keep every gate.
 4. **FINAL**: reconcile routes, data, assets, documents, jobs, protocols and SEO files; `bin/parity gate all`; a final-acceptance record
    and runbooks. A production cutover is the user's decision, outside the roadmap.
 
-**PIN-NN** recurs whenever the source moves: diff the old and new pin, port the schema drift, re-check the affected done cards, recapture
-the touched oracle plans, move the pin in tools and ledgers, and record it in `pinNN-goal.md`. Never mix revisions silently.
+**PIN-NN**, a standing milestone in the roadmap, recurs whenever the source moves: diff the pins, port the schema drift, re-check the
+affected done cards, recapture the touched oracle plans, and move the pin in tools and ledgers. Never mix revisions silently.
 
 ## IDs
 

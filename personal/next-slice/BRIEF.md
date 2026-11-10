@@ -1,7 +1,7 @@
 # Brief format
 
 A brief is the only input of one `/goal` run: `docs/briefs/<slice-id>-goal.md`, lowercase (`fe-f12b-goal.md`, `pin09-goal.md`,
-`search-02-goal.md`). The run reads this file and what it links to, nothing else, so every fact the run needs is in it or linked from it.
+`search-02-goal.md`). Every fact the run needs is in it or linked from it.
 
 ## Sizing
 
@@ -19,13 +19,11 @@ Slicing.
    here; "trace" or "find out" only for what needs running the slice itself.
 4. **`## Decisions`**: each choice marked `approved by the user` or `approved by delegation`, with its reason; repairs versus kept-as-source;
    the safety scope (systems touched, writes allowed, integrations faked) copied from the project's safety rules.
-5. **`## Reference`**: named, fetchable and compared directly: the source checkout at the pin, the oracle, a spec, an upstream document.
+5. **`## Reference`**: the source checkout at the pin, the oracle, a spec, an upstream document.
 6. **`## Inventory`** (optional): a table of the entry points in scope.
 7. **`## Acceptance checklist`**: numbered items, each with `Check:` (an exact command or observation) and `Pass:` (its condition). Order:
    tests first, no real integration traffic, parity against the Reference, browser or end-to-end, records. The last item is always the
    records: this brief's Outcome, the plan's slice row and its `Next:` line, the project's evidence record and status log where it keeps
    them (a migration does), then the project's full check command. Pass: exit 0.
-8. **`## Outcome`**: `Not started.` The run replaces it with `Done <YYYY-MM-DD>: …` (evidence, counts, differences, follow-ups) or
-   `Blocked: …` (the cause and what unblocks it).
-
-Every Scope item maps to at least one acceptance item.
+8. **`## Outcome`**: `Not started.`, then a comment telling the run to replace that line with `Done <YYYY-MM-DD>: …` (evidence, counts,
+   differences, follow-ups) or, when it stops short, `Blocked: …` (the cause and what unblocks it).
