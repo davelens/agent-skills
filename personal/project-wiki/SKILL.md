@@ -1,6 +1,6 @@
 ---
 name: project-wiki
-description: Project wiki for current functionality and business logic. Use first—before reading or searching project files—on any task involving features, models, schemas, workflows, integrations, business rules, or behavior; maintain it after functional changes.
+description: Current functionality and business logic. Use first—before reading project files—on feature, model, schema, workflow, integration, or business-rule tasks; update after functional changes.
 ---
 
 # Project Wiki
