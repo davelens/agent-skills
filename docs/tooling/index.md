@@ -9,6 +9,7 @@ concise project-wide facts and conventions.
 
 - [Adyen](adyen.md) — unversioned rolling payment documentation.
 - [Bootstrap](bootstrap.md) — versioned; current mirror: 5.3.8.
+- [Path of Achra Wiki](pathofachra.md) — unversioned Path of Achra community wiki.
 - [Quill](quill.md) — versioned; current mirror: 2.0.3.
 - [Quickshell](quickshell.md) — versioned; current mirror: 0.3.0.
 - [Teamleader Focus API](teamleader.md) — unversioned API docs.

@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+#
+# sync-pathofachra-docs — mirror every main-namespace article of the Path of
+# Achra wiki (pathofachra.wiki.gg) into docs/tooling/pathofachra/ as clean
+# markdown, then (re)generate the agent navigation INDEX.md.
+#
+# The wiki is a rolling MediaWiki, so there is a single mirror directory. The
+# article list is discovered live from the MediaWiki API (list=allpages,
+# namespace 0, redirects excluded) on every sync, so new articles are picked up
+# without editing this script. The wiki is small (~40 pages).
+#
+# Idempotent: pages already mirrored are skipped unless --force is passed.
+#
+# Usage:
+#   sync-pathofachra-docs            sync missing pages, regenerate INDEX
+#   sync-pathofachra-docs --force    re-scrape every page
+#   sync-pathofachra-docs --path     print the local mirror dir (no network);
+#                                exit 1 if nothing is mirrored yet
+#
+# Env: PATHOFACHRA_DELAY (default 1s between pages), PATHOFACHRA_BACKOFF (default 60s).
+#
+# Requires: ketch, python3.
+
+set -euo pipefail
+
+# Resolve through skill symlinks so the mirror always lands in this repo.
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
+# personal/docs-reference/bin -> repo root is three levels up.
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+MIRROR="$REPO_ROOT/docs/tooling/pathofachra"
+
+SITE="https://pathofachra.wiki.gg"
+DELAY="${PATHOFACHRA_DELAY:-1}"      # seconds between page requests
+BACKOFF="${PATHOFACHRA_BACKOFF:-60}"
+
+# shellcheck source=../../../lib/docs-mirror.sh
+source "$REPO_ROOT/lib/docs-mirror.sh"
+
+dm_parse_args "${1:-}"
+DM_SELECT=".mw-parser-output"
+
+# ── --path: report local mirror, no network ─────────────────────
+[[ "$DM_MODE" == "path" ]] && dm_print_path_single "$MIRROR" "Path of Achra Wiki"
+
+dm_require ketch python3
+
+# ── Discover articles from the MediaWiki API ────────────────────
+# Each line: <url>\t<relative .md path>\t<title>. Title -> file: spaces become
+# underscores (the wiki's own URL form) and "/" becomes "%2F", so the mirror
+# stays one flat directory.
+echo "Discovering articles from the MediaWiki API..."
+PAGES="$(SITE="$SITE" python3 - <<'PY'
+import json, os, time, urllib.parse, urllib.request
+site = os.environ["SITE"]
+SAFE = "/:()!,'"
+params = {"action": "query", "list": "allpages", "apnamespace": "0",
+          "apfilterredir": "nonredirects", "aplimit": "max", "format": "json"}
+while True:
+    url = f"{site}/api.php?{urllib.parse.urlencode(params)}"
+    req = urllib.request.Request(url, headers={"User-Agent": "docs-reference-sync"})
+    data = json.load(urllib.request.urlopen(req, timeout=60))
+    for page in data["query"]["allpages"]:
+        title = page["title"]
+        slug = title.replace(" ", "_")
+        href = f"{site}/wiki/{urllib.parse.quote(slug, safe=SAFE)}"
+        print(f"{href}\t{slug.replace('/', '%2F')}.md\t{title}")
+    if "continue" not in data:
+        break
+    params.update(data["continue"])
+    time.sleep(2)
+PY
+)"
+[[ -n "$PAGES" ]] || { echo "ERROR: no articles found via the API." >&2; exit 1; }
+echo "Found $(printf '%s\n' "$PAGES" | wc -l) articles."
+
+# ── Scrape pages ────────────────────────────────────────────────
+# Sequential and throttled to stay polite to wiki.gg. On a failure, wait and retry once. A page
+# that fails twice is skipped; three such pages in a row abort the run (likely
+# rate-limited), which a later re-run resumes.
+echo "Scraping into $MIRROR (${DELAY}s between requests)"
+count=0; fail=0; streak=0
+while IFS=$'\t' read -r url rel _; do
+  [[ -z "$url" ]] && continue
+  out="$MIRROR/$rel"
+  [[ $DM_FORCE -eq 0 && -s "$out" ]] && continue
+  if dm_scrape "$url" "$out" "$rel" \
+    || { echo "  Backing off ${BACKOFF}s..." >&2; sleep "$BACKOFF"; dm_scrape "$url" "$out" "$rel"; }; then
+    count=$((count+1)); streak=0
+  elif (( ++streak >= 3 )); then
+    echo "ERROR: 3 pages in a row failed; probably rate-limited. Re-run later to resume." >&2
+    fail=1; break
+  fi
+  sleep "$DELAY"
+done <<< "$PAGES"
+echo "Pages scraped this run: $count."
+
+# ── Generate INDEX.md ───────────────────────────────────────────
+echo "Generating INDEX.md"
+MIRROR="$MIRROR" PAGES="$PAGES" python3 - <<'PY'
+import os
+MIRROR = os.environ["MIRROR"]
+os.chdir(MIRROR)
+entries = []
+for line in os.environ["PAGES"].splitlines():
+    _, rel, title = line.split("\t", 2)
+    if os.path.exists(rel):
+        entries.append((title, rel))
+entries.sort(key=lambda e: e[0].casefold())
+
+out = ["# Path of Achra Wiki — Agent Navigation Index", "",
+ "Offline mirror of the Path of Achra wiki (`pathofachra.wiki.gg`): game "
+ "mechanics, stats, classes, cultures, religions, items, powers, enemies, and "
+ "lore. One line per article, sorted by title.", "",
+ f"**Mirror root:** `docs/tooling/pathofachra/` · **Source:** `pathofachra.wiki.gg` · "
+ f"{len(entries)} pages", "",
+ "## Articles", ""]
+out += [f"- [{title}]({rel})" for title, rel in entries]
+
+open("INDEX.md", "w", encoding="utf-8").write("\n".join(out) + "\n")
+print(f"  INDEX.md: {len(entries)} pages, {os.path.getsize('INDEX.md')} bytes")
+PY
+
+echo
+echo "Done: $MIRROR"
+exit "$fail"
