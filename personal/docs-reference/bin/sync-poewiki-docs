@@ -1,0 +1,191 @@
+#!/usr/bin/env bash
+#
+# sync-poewiki-docs — mirror the Path of Exile community wiki (poewiki.net)
+# articles on bosses, game mechanics, content systems, the passive skill tree,
+# and skill gems into docs/tooling/poewiki/ as clean markdown, then
+# (re)generate the agent navigation INDEX.md.
+#
+# The wiki is a rolling MediaWiki, so there is a single mirror directory. The
+# article list is discovered live from wiki categories (MediaWiki API) on every
+# sync, so new articles are picked up without editing this script. Pages that
+# fall out of scope are deleted. The first sync takes hours; it is resumable
+# because existing pages are skipped.
+#
+# Idempotent: pages already mirrored are skipped unless --force is passed.
+#
+# Usage:
+#   sync-poewiki-docs            sync missing pages, regenerate INDEX
+#   sync-poewiki-docs --force    re-scrape every page
+#   sync-poewiki-docs --path     print the local mirror dir (no network);
+#                                exit 1 if nothing is mirrored yet
+#
+# Env: POEWIKI_DELAY (default 2s between pages), POEWIKI_BACKOFF (default 120s).
+#
+# Requires: ketch, python3.
+
+set -euo pipefail
+
+# Resolve through skill symlinks so the mirror always lands in this repo.
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
+# personal/docs-reference/bin -> repo root is three levels up.
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+MIRROR="$REPO_ROOT/docs/tooling/poewiki"
+
+SITE="https://www.poewiki.net"
+DELAY="${POEWIKI_DELAY:-2}"      # seconds between page requests
+BACKOFF="${POEWIKI_BACKOFF:-120}"
+
+# shellcheck source=../../../lib/docs-mirror.sh
+source "$REPO_ROOT/lib/docs-mirror.sh"
+
+dm_parse_args "${1:-}"
+DM_SELECT=".mw-parser-output"
+
+# ── --path: report local mirror, no network ─────────────────────
+[[ "$DM_MODE" == "path" ]] && dm_print_path_single "$MIRROR" "PoE Wiki"
+
+dm_require ketch python3
+
+# ── Discover articles from wiki categories ──────────────────────
+# Only bosses, game mechanics, content systems, the passive skill tree, and
+# skill gems: main-namespace pages from the INCLUDE category walks, minus item
+# pages (Base items / Derived items) that are not gems. Lore, items, maps,
+# patch notes, and removed content stay out.
+# Each line: <url>\t<relative .md path>\t<title>. Title -> file: spaces become
+# underscores (the wiki's own URL form) and "/" becomes "%2F", so the mirror
+# stays one flat directory.
+echo "Discovering articles from wiki categories (a few minutes)..."
+PAGES="$(SITE="$SITE" python3 - <<'PY'
+import json, os, time, urllib.error, urllib.parse, urllib.request
+site = os.environ["SITE"]
+SAFE = "/:()!,'"
+# (category, subcategory depth)
+INCLUDE = [("Bosses", 0), ("Boss monsters", 1), ("Game mechanics", 1),
+           ("Challenge leagues", 1), ("Passive skills", 1), ("Ascendancy", 0),
+           ("Ascendancy classes", 1), ("Character classes", 0)]
+GEMS = [("Skill gems", 1), ("Support gems", 1)]
+EXCLUDE = [("Base items", 0), ("Derived items", 0)]
+SKIP_SUBCATS = {"Prophecies", "Removed mechanics", "Removed passive skills"}
+EXTRA = {"Map", "Endgame"}  # endgame overviews outside the categories above
+
+def api(params):
+    params = {**params, "format": "json", "formatversion": "2"}
+    req = urllib.request.Request(f"{site}/api.php?{urllib.parse.urlencode(params)}",
+                                 headers={"User-Agent": "docs-reference-sync"})
+    for attempt in range(5):
+        try:
+            data = json.load(urllib.request.urlopen(req, timeout=60))
+            time.sleep(2)  # stay under the Cloudflare rate limit
+            return data
+        except urllib.error.HTTPError as e:
+            if e.code != 429 or attempt == 4:
+                raise
+            time.sleep(120)
+
+def walk(roots):
+    pages, seen = set(), set()
+    todo = [(f"Category:{c}", d) for c, d in roots]
+    while todo:
+        cat, depth = todo.pop()
+        if cat in seen:
+            continue
+        seen.add(cat)
+        params = {"action": "query", "list": "categorymembers", "cmtitle": cat,
+                  "cmlimit": "max", "cmprop": "title|type|ns"}
+        while True:
+            data = api(params)
+            for m in data["query"]["categorymembers"]:
+                if m["type"] == "subcat":
+                    if depth > 0 and m["title"][9:] not in SKIP_SUBCATS:
+                        todo.append((m["title"], depth - 1))
+                elif m["type"] == "page" and m["ns"] == 0:
+                    pages.add(m["title"])
+            if "continue" not in data:
+                break
+            params.update(data["continue"])
+    return pages
+
+gems = walk(GEMS)
+titles = EXTRA | gems | (walk(INCLUDE) - walk(EXCLUDE))
+for title in sorted(titles):
+    slug = title.replace(" ", "_")
+    href = f"{site}/wiki/{urllib.parse.quote(slug, safe=SAFE)}"
+    print(f"{href}\t{slug.replace('/', '%2F')}.md\t{title}")
+PY
+)"
+[[ -n "$PAGES" ]] || { echo "ERROR: no articles found via the API." >&2; exit 1; }
+# Too big for an env var (128 KB limit), so the Python steps read a file.
+PAGES_FILE="$(mktemp)"
+trap 'rm -f "$PAGES_FILE"' EXIT
+printf '%s\n' "$PAGES" > "$PAGES_FILE"
+echo "Found $(wc -l < "$PAGES_FILE") articles."
+
+# ── Prune pages no longer in scope ──────────────────────────────
+if [[ -d "$MIRROR" ]]; then
+  pruned="$(MIRROR="$MIRROR" PAGES_FILE="$PAGES_FILE" python3 - <<'PY'
+import os
+keep = {l.split("\t")[1] for l in open(os.environ["PAGES_FILE"], encoding="utf-8").read().splitlines()} | {"INDEX.md"}
+n = 0
+for f in os.listdir(os.environ["MIRROR"]):
+    if f.endswith(".md") and f not in keep:
+        os.remove(os.path.join(os.environ["MIRROR"], f)); n += 1
+print(n)
+PY
+)"
+  echo "Pruned $pruned out-of-scope pages."
+fi
+
+# ── Scrape pages ────────────────────────────────────────────────
+# Sequential and throttled: the site sits behind Cloudflare and returns 429
+# (then a JS challenge) on bursts. On a failure, wait and retry once. A page
+# that fails twice is skipped; three such pages in a row abort the run (likely
+# rate-limited), which a later re-run resumes.
+echo "Scraping into $MIRROR (${DELAY}s between requests)"
+count=0; fail=0; streak=0
+while IFS=$'\t' read -r -u 3 url rel _; do
+  [[ -z "$url" ]] && continue
+  out="$MIRROR/$rel"
+  [[ $DM_FORCE -eq 0 && -s "$out" ]] && continue
+  if dm_scrape "$url" "$out" "$rel" \
+    || { echo "  Backing off ${BACKOFF}s..." >&2; sleep "$BACKOFF"; dm_scrape "$url" "$out" "$rel"; }; then
+    count=$((count+1)); streak=0
+  elif (( ++streak >= 3 )); then
+    echo "ERROR: 3 pages in a row failed; probably rate-limited. Re-run later to resume." >&2
+    fail=1; break
+  fi
+  sleep "$DELAY"
+done 3< "$PAGES_FILE"
+echo "Pages scraped this run: $count."
+
+# ── Generate INDEX.md ───────────────────────────────────────────
+echo "Generating INDEX.md"
+MIRROR="$MIRROR" PAGES_FILE="$PAGES_FILE" python3 - <<'PY'
+import os
+MIRROR = os.environ["MIRROR"]
+os.chdir(MIRROR)
+entries = []
+for line in open(os.environ["PAGES_FILE"], encoding="utf-8").read().splitlines():
+    _, rel, title = line.split("\t", 2)
+    if os.path.exists(rel):
+        entries.append((title, rel))
+entries.sort(key=lambda e: e[0].casefold())
+
+out = ["# PoE Wiki — Agent Navigation Index", "",
+ "Offline mirror of part of the Path of Exile community wiki (`poewiki.net`): "
+ "bosses, game mechanics, content systems (leagues), the passive skill tree "
+ "and ascendancies, and skill/support gems. No items, lore, or patch notes. "
+ "One line per article, sorted by title. Do not read this "
+ "file whole — grep it (or `ls`) for a title, then read that one file.", "",
+ f"**Mirror root:** `docs/tooling/poewiki/` · **Source:** `poewiki.net` · "
+ f"{len(entries)} pages", "",
+ "## Articles", ""]
+out += [f"- [{title}]({rel})" for title, rel in entries]
+
+open("INDEX.md", "w", encoding="utf-8").write("\n".join(out) + "\n")
+print(f"  INDEX.md: {len(entries)} pages, {os.path.getsize('INDEX.md')} bytes")
+PY
+
+echo
+echo "Done: $MIRROR"
+exit "$fail"

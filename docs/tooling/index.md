@@ -10,6 +10,7 @@ concise project-wide facts and conventions.
 - [Adyen](adyen.md) — unversioned rolling payment documentation.
 - [Bootstrap](bootstrap.md) — versioned; current mirror: 5.3.8.
 - [Path of Achra Wiki](pathofachra.md) — unversioned Path of Achra community wiki.
+- [PoE Wiki](poewiki.md) — unversioned Path of Exile community wiki (game knowledge subset); gitignored.
 - [Quill](quill.md) — versioned; current mirror: 2.0.3.
 - [Quickshell](quickshell.md) — versioned; current mirror: 0.3.0.
 - [Teamleader Focus API](teamleader.md) — unversioned API docs.
@@ -19,7 +20,7 @@ Each `personal/docs-reference/bin/sync-<product>-docs` script owns discovery,
 fetching, and `INDEX.md` generation. Shared helpers live in
 `lib/docs-mirror.sh`.
 
-This repo includes downloaded versions of all docs but Adyen, since the latter
-was by far the largest at 58mb (by comparison, Teamleader is the second largest
-with only about 2mb).
+This repo includes downloaded versions of all docs but Adyen and the PoE Wiki.
+Those are by far the largest: Adyen is 58mb and the PoE Wiki is ~4,500 pages.
+Of the committed mirrors, Teamleader is the largest with only about 2mb.
 
