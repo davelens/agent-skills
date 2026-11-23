@@ -25,6 +25,7 @@ personal/project-conventions
 personal/project-memory
 personal/project-wiki
 personal/report-initial-tokens
+personal/rust-gui
 personal/search-git-history
 personal/search-gmail
 personal/session-cleanup
