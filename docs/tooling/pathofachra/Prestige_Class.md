@@ -1,7 +1,7 @@
 ---
 url: https://pathofachra.wiki.gg/wiki/Prestige_Class
 title: Prestige Class - Path of Achra Wiki
-words: 8755
+words: 9269
 ---
 List of Prestige Classes
 
@@ -1569,6 +1569,82 @@ Within the Lochra priesthood, the Ur-Beast's intense fury is viewed as both a mi
 
 It is the fate of many who invoke the Ur-Beast to finally degrade into Gora, yelping hounds of mindless bloodlust, banished to the astral dark, howling ever-hungry above the lands of Achra.
 
-Beast Visage equipped, or Main-hand 'Axe' weapon wit
+Beast Visage equipped, or Main-hand 'Axe' weapon with at least 300 base Hit
 
-[truncated]
+On attack / apply [](/wiki/File:Berserk.png "Berserk")Berserk, if head armor is equipped and all other armor slots are empty:
+
+- Apply 1 [](/wiki/File:Beastform.png "Beastform Icon")Beastform to yourself
+
+[](/wiki/File:Night-Crow.png "Night-Crow Icon")
+
+Night-Crow The Night-Crows began as a sect of sorcerers who were cast out from the gate of death
+
+Dressed in humiliating feathered garments, they wandered the bleak northern montains until they came pon the corpse of a giant, iridescent crow; the sorcerers ate of its magic, decaying flesh, forever gaining its power and shape
+
+The Night-Crows are now called the "wild path" for aspiring mystics, who wish to pursue the glory of the stars
+
+Crow Visage equipped, or at least 3 'Staff' weapons in inventory
+
+On kill / apply [](/wiki/File:Meditate.png "Meditate")Meditate, if head armor is equipped and all other armor slots are empty:
+
+- Apply 2 [](/wiki/File:Crowform.png "Crowform Icon")Crowform to yourself
+- Deal 15 Astral damage to yourself
+- Deal Death damage to the closest enemy
+  
+  - Damage = stacks of [](/wiki/File:Crowform.png "Crowform Icon")Crowform on self * 5
+
+[](/wiki/File:Anroth.png "Anroth Icon")
+
+Anroth Before the first distortions of the earth, Anroth was a fighter raised to divinity. It was Anroth alone who struggled upon the crumbling wheel of light, the descending rainbow of creation, for nameless years, vanquishing demons of the fecund dark.
+
+Those who walk the path of Anroth abstain from glory-given powers, immensely raising their natural abilities and strengthening their weapons. Their emblem is a shield bearing the first rainbow, that whirls in every direction.
+
+20 Glory with no powers
+
+On learn:
+
+- Doubles your Strength, Dexterity, and Willpower
+- Spends 10 unused power points
+
+On Glory rising, if you have no powers:
+
+- Permanently upgrade your equipped weapons +100 Hit / +100 Block
+- Heal to full life
+- Remove all externally-applied Effects from yourself
+
+[](/wiki/File:Ogham.png "Ogham Icon")
+
+Ogham A rebel sect that began among Lochra skull-wearers, the mute Ogham follow a strict orthodoxy that forbids the utterance of divine language. To pray is instead to partake in the mystery of violence, the splling of gore
+
+The Ogham refuse the favor of their deities, seeking redemption chaotically in the roar of battle
+
+"Mutter no prayer, for war is thy invocation"
+
+20 Glory
+
+You may no longer use prayers or receive divine intervention
+
+On initial attack:
+
+- Recite a random prayer
+  
+  - This may recite prayers with 0 charges
+
+[](/wiki/File:Struggler.png "Struggler Icon")
+
+Struggler Sometimes, from the contortions of history, a lone wanderer will emerge to challenge the nameless, shapeless beings that swarm from gulfs beyond the void.
+
+Driven by revenge or sheer tenacity, they are often hunted to brutal annihilation, erased from the memory of the earth, but for those washed in the utmost purity of violence, striding glorious through the howling wastelands of the path
+
+20 Glory while in the Land of Achra
+
+Fearsome Pretas will hunt you, hungry ghosts from the land of dust...
+
+33% chance to endure any amount of damage
+
+- Endured damage is set to 1
+- Works on self-damage
+
+On being damaged by an enemy:
+
+- Perform an extra attack against an adjacent enemy

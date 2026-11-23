@@ -30,6 +30,17 @@ One markdown file per main-namespace article, in one flat directory. File name
 Each file keeps the source `url`/`title` in frontmatter. Redirects are not
 mirrored; search for the canonical title.
 
+Two exceptions, both built by the sync script:
+
+- **Items:** `Items.md` is an index with one table per slot (key stats per
+  item). Each item has its own file in `items/` (`items/Lapis_Glaive.md`)
+  with stats, resistances and effects.
+- **Enemies:** `Enemies.md` is an index with one table per enemy pool (life,
+  speed, damage, resistances). Each enemy has its own file in `enemies/`.
+  Enemies with a dedicated wiki page keep that page there
+  (`enemies/Withered_Imp.md`); the others are built from the tables in
+  `Nemesis.md` and `Guardians.md`, which list ability names only.
+
 ## Workflow
 
 1. **Find the article.** `ls "$MIRROR"` or `rg -i '<term>' "$MIRROR/INDEX.md"`.
@@ -37,7 +48,9 @@ mirrored; search for the canonical title.
    mention it.
 2. **Read that one file.** `Stats.md`, `Damage.md`, and `Effects.md` explain
    the mechanics; `Class.md`, `Culture.md`, `Religion.md`, and `Powers.md`
-   cover character build options; enemy pages give their stats.
+   cover character build options. For an item, read `items/<Item_Name>.md`;
+   for an enemy, `enemies/<Enemy_Name>.md`. Use `Items.md` and `Enemies.md`
+   to compare by slot or by pool.
 
 ## Notes
 

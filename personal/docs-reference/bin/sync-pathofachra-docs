@@ -33,6 +33,8 @@ MIRROR="$REPO_ROOT/docs/tooling/pathofachra"
 SITE="https://pathofachra.wiki.gg"
 DELAY="${PATHOFACHRA_DELAY:-1}"      # seconds between page requests
 BACKOFF="${PATHOFACHRA_BACKOFF:-60}"
+# Items.md is ~300KB; the lib default (60000) truncates it.
+DM_MAX_CHARS="${DM_MAX_CHARS:-1000000}"
 
 # shellcheck source=../../../lib/docs-mirror.sh
 source "$REPO_ROOT/lib/docs-mirror.sh"
@@ -83,7 +85,8 @@ count=0; fail=0; streak=0
 while IFS=$'\t' read -r url rel _; do
   [[ -z "$url" ]] && continue
   out="$MIRROR/$rel"
-  [[ $DM_FORCE -eq 0 && -s "$out" ]] && continue
+  # Enemy pages are moved into enemies/ after the scrape; count them as present.
+  [[ $DM_FORCE -eq 0 && ( -s "$out" || -s "$MIRROR/enemies/$rel" ) ]] && continue
   if dm_scrape "$url" "$out" "$rel" \
     || { echo "  Backing off ${BACKOFF}s..." >&2; sleep "$BACKOFF"; dm_scrape "$url" "$out" "$rel"; }; then
     count=$((count+1)); streak=0
@@ -94,6 +97,273 @@ while IFS=$'\t' read -r url rel _; do
   sleep "$DELAY"
 done <<< "$PAGES"
 echo "Pages scraped this run: $count."
+
+# ── Split Items.md into items/<Item>.md ─────────────────────────
+# A fresh scrape of Items.md becomes an index of per-item files. An already
+# split Items.md has no wiki table header and is left alone, so plain re-runs
+# keep the structure and --force rebuilds it.
+if [[ -s "$MIRROR/Items.md" ]]; then
+  echo "Splitting Items.md"
+  MIRROR="$MIRROR" python3 - <<'PY' || echo "WARNING: item split failed; Items.md left unsplit." >&2
+import os, re, shutil
+
+MIRROR = os.environ["MIRROR"]
+src = os.path.join(MIRROR, "Items.md")
+text = open(src, encoding="utf-8").read()
+# An already-split Items.md is an index; only a fresh scrape has the wiki table header.
+if "Name Description Accu-racy" not in text:
+    print("  Items.md already split; skipping")
+    raise SystemExit(0)
+
+ICON = re.compile(r'\[\]\(/wiki/File:[^)]*\)')
+ITEM_START = re.compile(r'^\[.*"\]?(?P<name>[^"\]]+?) Icon"\)$')
+SLOT = re.compile(r'^\[\]\(/wiki/File:Slot\w+\.png "\w+ Armor Icon"\)(?P<slot>\w+)$')
+WEAPON = re.compile(r'^(?P<desc>.*?)\s+(?P<acc>\d+) (?P<hit>\d+) (?P<type>[A-Za-z]+) (?P<block>\d+) '
+                    r'(?P<range>\d+) (?P<enc>\d+) (?P<size>\d+)(?P<rest>.*)$')
+ARMOR = re.compile(r'^(?P<desc>.*?)\s+(?P<armor>\d+) (?P<enc>\d+) (?P<inflex>\d+)(?P<rest>.*)$')
+RESIST = re.compile(r'Resist (\w+) (-?\d+%)')
+
+lines = text.split("\n")
+body_start = lines.index("---", 1) + 1
+intro = []
+for line in lines[body_start:]:
+    if line.strip() == "Contents":
+        break
+    intro.append(line)
+
+items, slot, i = [], "Weapons/Shields", body_start
+while i < len(lines):
+    line = lines[i].strip()
+    m_slot = SLOT.match(line)
+    if m_slot:
+        slot = m_slot["slot"]
+    m = ITEM_START.match(line)
+    nxt = next((l.strip() for l in lines[i + 1:] if l.strip()), "")
+    if m and nxt.startswith(m["name"] + " "):
+        block = []
+        j = i + 1
+        while j < len(lines):
+            s = lines[j].strip()
+            n2 = next((l.strip() for l in lines[j + 1:] if l.strip()), "")
+            im = ITEM_START.match(s)
+            if (im and n2.startswith(im["name"] + " ")) or SLOT.match(s) or s in ("* * *", "Armor"):
+                break
+            block.append(ICON.sub("", lines[j]).rstrip())
+            j += 1
+        items.append((m["name"], slot, block))
+        i = j
+        continue
+    i += 1
+
+entries, seen = [], set()
+for name, slot, block in items:
+    assert name not in seen, f"duplicate item {name}"
+    seen.add(name)
+    nonblank = [l for l in block if l.strip()]
+    head = nonblank[0][len(name):].strip()
+    rx = WEAPON if slot == "Weapons/Shields" else ARMOR
+    m = rx.match(head)
+    assert m, f"cannot parse stats of {name}: {head}"
+    stats = m.groupdict()
+    resists = RESIST.findall(stats["rest"])
+    area = "Yes" if stats["rest"].rstrip().endswith("Yes") else "No" if stats["rest"].rstrip().endswith("No") else ""
+    effects, in_header = [], True
+    for l in block[block.index(nonblank[0]) + 1:]:
+        s = l.strip()
+        if in_header and not s:
+            continue
+        if in_header and (RESIST.fullmatch(s) or s in ("\\-", "-")):
+            resists += RESIST.findall(s)
+            continue
+        if in_header and slot == "Weapons/Shields" and s in ("Yes", "No"):
+            area = s
+            continue
+        in_header = False
+        effects.append(l)
+    stats.update(name=name, slot=slot, area=area or "No", resists=resists, effects=effects)
+    entries.append(stats)
+
+sections = ["Weapons/Shields", "Head", "Arm", "Chest", "Leg"]
+assert {e["slot"] for e in entries} <= set(sections), {e["slot"] for e in entries}
+
+def fname(name):
+    return name.replace(" ", "_").replace("/", "%2F") + ".md"
+
+out_dir = os.path.join(MIRROR, "items")
+shutil.rmtree(out_dir, ignore_errors=True)
+os.makedirs(out_dir)
+for e in entries:
+    if e["slot"] == "Weapons/Shields":
+        table = ["| Accuracy | Hit | Type | Block | Range | Encumbrance | Weapon size | Area if two-handing |",
+                 "|---|---|---|---|---|---|---|---|",
+                 f"| {e['acc']} | {e['hit']} | {e['type']} | {e['block']} | {e['range']} | {e['enc']} | {e['size']} | {e['area']} |"]
+        slot_label = "Weapon/Shield"
+    else:
+        table = ["| Armor | Encumbrance | Inflexibility |", "|---|---|---|",
+                 f"| {e['armor']} | {e['enc']} | {e['inflex']} |"]
+        slot_label = f"{e['slot']} armor"
+    resist = ", ".join(f"{t} {v}" for t, v in e["resists"]) or "none"
+    effects = "\n".join(e["effects"]).strip() or "None."
+    effects = re.sub(r"\n{3,}", "\n\n", effects)
+    doc = ["---", "url: https://pathofachra.wiki.gg/wiki/Items", f"title: {e['name']}",
+           f"slot: {slot_label}", "---", f"# {e['name']}", "", e["desc"].strip(), "",
+           f"**Slot:** {slot_label}", "", *table, "", f"**Resistances:** {resist}", "",
+           "## Effects", "", effects, ""]
+    open(os.path.join(out_dir, fname(e["name"])), "w", encoding="utf-8").write("\n".join(doc))
+
+index = ["---", "url: https://pathofachra.wiki.gg/wiki/Items", "title: Items - Path of Achra Wiki", "---",
+         "# Items", "", "\n".join(intro).strip(), "",
+         f"One file per item in `items/` ({len(entries)} items), with stats, resistances and effects. "
+         "Sorted by name within each slot.", ""]
+for sec in sections:
+    rows = sorted((e for e in entries if e["slot"] == sec), key=lambda e: e["name"].casefold())
+    title = sec if sec == "Weapons/Shields" else f"{sec} armor"
+    index += [f"## {title}", ""]
+    if sec == "Weapons/Shields":
+        index += ["| Item | Type | Hit | Accuracy | Encumbrance | Weapon size | Area |", "|---|---|---|---|---|---|---|"]
+        index += [f"| [{e['name']}](items/{fname(e['name'])}) | {e['type']} | {e['hit']} | {e['acc']} | "
+                  f"{e['enc']} | {e['size']} | {e['area']} |" for e in rows]
+    else:
+        index += ["| Item | Armor | Encumbrance | Inflexibility |", "|---|---|---|---|"]
+        index += [f"| [{e['name']}](items/{fname(e['name'])}) | {e['armor']} | {e['enc']} | {e['inflex']} |"
+                  for e in rows]
+    index.append("")
+open(src, "w", encoding="utf-8").write("\n".join(index))
+print(f"  Items.md: split into {len(entries)} files in items/")
+PY
+fi
+
+# ── Build enemies/<Enemy>.md and Enemies.md ─────────────────────
+# Rebuilt on every run: dedicated enemy pages move from the root into
+# enemies/, and every other enemy gets a file from the Nemesis and
+# Guardians tables.
+echo "Building enemies/"
+MIRROR="$MIRROR" python3 - <<'PY' || echo "WARNING: enemy split failed; enemies/ may be incomplete." >&2
+import os, re
+
+MIRROR = os.environ["MIRROR"]
+out_dir = os.path.join(MIRROR, "enemies")
+os.makedirs(out_dir, exist_ok=True)
+SITE = "https://pathofachra.wiki.gg/wiki/"
+SOURCES = ["Nemesis.md", "Guardians.md"]
+
+ICON = re.compile(r'\[\]\(/wiki/File:[^)]*\)')
+ITEM_START = re.compile(r'^\[.*"\]?(?P<name>[^"\]]+?) Icon"\)$')
+V = r'\d+(?: ?\+ ?cycle)?'
+ROW = re.compile(rf'^(?P<desc>.*?)\s+(?P<life>{V}) (?P<speed>\d+\(\d+\)(?: ?\+ ?cycle)?) (?P<range>\d+) '
+                 rf'(?P<acc>{V}) (?P<dmg>\d+ ?[A-Za-z]+(?: ?\+ ?cycle)?) (?P<dodge>{V}) (?P<block>{V}) '
+                 rf'(?P<armor>{V})(?P<rest>.*)$')
+RESIST = re.compile(r'\\?(-?\d+)%\s*([A-Za-z]+)')
+
+def fname(name):
+    return name.replace(" ", "_").replace("/", "%2F") + ".md"
+
+def is_enemy_page(path):
+    lines = {l.strip() for l in open(path, encoding="utf-8")}
+    return {"Stats", "Resists", "Abilities"} <= lines
+
+# Dedicated wiki pages of single enemies live in enemies/, not in the mirror root.
+for f in sorted(os.listdir(MIRROR)):
+    p = os.path.join(MIRROR, f)
+    if f.endswith(".md") and os.path.isfile(p) and is_enemy_page(p):
+        os.replace(p, os.path.join(out_dir, f))
+dedicated = {f for f in os.listdir(out_dir) if is_enemy_page(os.path.join(out_dir, f))}
+
+def row_lines_end(s):
+    return not (not s or s in ("-", "\\-") or s.startswith("- ") or RESIST.fullmatch(s))
+
+sections, enemies, failed = [], {}, []
+for src in SOURCES:
+    path = os.path.join(MIRROR, src)
+    if not os.path.exists(path):
+        continue
+    lines = [l.strip() for l in open(path, encoding="utf-8").read().split("\n")]
+    section = None
+    for i, line in enumerate(lines):
+        if line.startswith("Name Description"):
+            # The heading is the nearest line above that is not prose.
+            section = ICON.sub("", next(l for l in reversed(lines[:i]) if l and not l.endswith("."))).strip()
+            sections.append(section)
+            continue
+        m = ITEM_START.match(line)
+        if not (m and section):
+            continue
+        name = m["name"]
+        base = re.sub(r" \([^)]*\)$", "", name)  # "King Of Many Colors (Purple)" rows start with the base name
+        j = i + 1
+        while j < len(lines) and not lines[j]:
+            j += 1
+        if not lines[j].startswith(base + " "):
+            continue
+        row = re.sub(r'\s*style="[^"]*"', "", ICON.sub("", lines[j]))[len(base):].strip()
+        r = ROW.match(row)
+        if not r:
+            failed.append(f"{name}: {row[-160:]}")
+            continue
+        e = r.groupdict()
+        e = {k: re.sub(r" ?\+ ?cycle", " + cycle", v) for k, v in e.items()}
+        e["dmg"] = re.sub(r"^(\d+) ?", r"\1 ", e["dmg"])
+        resists = RESIST.findall(e["rest"])
+        abilities = []
+        for raw in lines[j + 1:]:
+            s = ICON.sub("", raw).strip()
+            if ITEM_START.match(raw) or row_lines_end(s):
+                break
+            if s.startswith("- "):
+                abilities.append(s[2:])
+            else:
+                resists += RESIST.findall(s)
+        e.update(name=name, source=src, resists=[(t, f"{v}%") for v, t in resists], abilities=abilities)
+        if name in enemies:
+            enemies[name]["found"].append(section)
+        else:
+            e["found"] = [section]
+            enemies[name] = e
+
+assert enemies, "no enemies parsed"
+
+# Remove files generated from tables on an earlier run; dedicated pages stay.
+for f in os.listdir(out_dir):
+    if f not in dedicated:
+        os.remove(os.path.join(out_dir, f))
+
+for e in enemies.values():
+    f = fname(e["name"])
+    e["file"] = f
+    if f in dedicated:
+        continue
+    resist = ", ".join(f"{t} {v}" for t, v in e["resists"]) or "none"
+    doc = ["---", f"url: {SITE}{e['source'][:-3]}", f"title: {e['name']}", "---", f"# {e['name']}", "",
+           e["desc"].strip(), "", f"**Found in:** {', '.join(e['found'])}", "",
+           "| Life | Speed (min) | Range | Accuracy | Damage | Dodge | Block | Armor |",
+           "|---|---|---|---|---|---|---|---|",
+           f"| {e['life']} | {e['speed']} | {e['range']} | {e['acc']} | {e['dmg']} | {e['dodge']} | "
+           f"{e['block']} | {e['armor']} |", "", f"**Resistances:** {resist}", "",
+           f"**Abilities:** {', '.join(e['abilities']) or 'none'}", "",
+           f"Source: the {e['source'][:-3]} table. The wiki lists ability names only.", ""]
+    open(os.path.join(out_dir, f), "w", encoding="utf-8").write("\n".join(doc))
+
+index = ["---", "title: Enemies - Path of Achra Wiki", "---", "# Enemies", "",
+         f"One file per enemy in `enemies/` ({len(set(os.listdir(out_dir)))} files). Enemies with their own wiki "
+         "page keep that page; the others are built from the tables in `Nemesis.md` and `Guardians.md`, "
+         "which also explain how areas draw from these pools. Sections follow those tables; an enemy can "
+         "appear in more than one.", ""]
+for sec in sections:
+    rows = sorted((e for e in enemies.values() if sec in e["found"]), key=lambda e: e["name"].casefold())
+    index += [f"## {sec}", "", "| Enemy | Life | Speed (min) | Damage | Resistances |", "|---|---|---|---|---|"]
+    index += [f"| [{e['name']}](enemies/{e['file']}) | {e['life']} | {e['speed']} | {e['dmg']} | "
+              f"{', '.join(f'{t} {v}' for t, v in e['resists']) or '-'} |" for e in rows]
+    index.append("")
+other = sorted(dedicated - {e["file"] for e in enemies.values()})
+if other:
+    index += ["## Other enemy pages", ""]
+    index += [f"- [{f[:-3].replace('_', ' ')}](enemies/{f})" for f in other]
+    index.append("")
+open(os.path.join(MIRROR, "Enemies.md"), "w", encoding="utf-8").write("\n".join(index))
+print(f"  Enemies.md: {len(enemies)} table enemies, {len(dedicated)} dedicated pages in enemies/")
+for f in failed:
+    print(f"  WARNING: unparsed enemy row: {f}")
+PY
 
 # ── Generate INDEX.md ───────────────────────────────────────────
 echo "Generating INDEX.md"
@@ -106,6 +376,8 @@ for line in os.environ["PAGES"].splitlines():
     _, rel, title = line.split("\t", 2)
     if os.path.exists(rel):
         entries.append((title, rel))
+if os.path.exists("Enemies.md"):
+    entries.append(("Enemies", "Enemies.md"))
 entries.sort(key=lambda e: e[0].casefold())
 
 out = ["# Path of Achra Wiki — Agent Navigation Index", "",

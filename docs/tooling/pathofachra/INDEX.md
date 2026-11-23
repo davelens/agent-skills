@@ -2,31 +2,23 @@
 
 Offline mirror of the Path of Achra wiki (`pathofachra.wiki.gg`): game mechanics, stats, classes, cultures, religions, items, powers, enemies, and lore. One line per article, sorted by title.
 
-**Mirror root:** `docs/tooling/pathofachra/` · **Source:** `pathofachra.wiki.gg` · 42 pages
+**Mirror root:** `docs/tooling/pathofachra/` · **Source:** `pathofachra.wiki.gg` · 26 pages
 
 ## Articles
 
-- [Blinkbeast](Blinkbeast.md)
 - [Blood](Blood.md)
-- [Bramble Priest](Bramble_Priest.md)
 - [Chronology of Achra](Chronology_of_Achra.md)
 - [Class](Class.md)
 - [Controls](Controls.md)
 - [Culture](Culture.md)
 - [Damage](Damage.md)
 - [Effects](Effects.md)
+- [Enemies](Enemies.md)
 - [Events](Events.md)
 - [Glory](Glory.md)
-- [Gore Idol](Gore_Idol.md)
-- [Gore Nymph](Gore_Nymph.md)
-- [Green Wyrm](Green_Wyrm.md)
 - [Guardians](Guardians.md)
-- [Hobgoblin](Hobgoblin.md)
-- [Horror Giant](Horror_Giant.md)
-- [Irga Guard](Irga_Guard.md)
 - [Items](Items.md)
 - [Lost Shuppurak](Lost_Shuppurak.md)
-- [Mud Wretch](Mud_Wretch.md)
 - [Nemesis](Nemesis.md)
 - [Path of Achra](Path_of_Achra.md)
 - [Path of Achra (Place)](Path_of_Achra_(Place).md)
@@ -35,16 +27,8 @@ Offline mirror of the Path of Achra wiki (`pathofachra.wiki.gg`): game mechanics
 - [Powers](Powers.md)
 - [Prestige Class](Prestige_Class.md)
 - [Preta](Preta.md)
-- [Prince in Red](Prince_in_Red.md)
-- [Rat-man](Rat-man.md)
-- [Rat-man Peltast](Rat-man_Peltast.md)
 - [Religion](Religion.md)
-- [Slagh Astromancer](Slagh_Astromancer.md)
-- [Slagh Skirmisher](Slagh_Skirmisher.md)
 - [Stats](Stats.md)
 - [Summons](Summons.md)
 - [The Lands of Achra](The_Lands_of_Achra.md)
-- [Trembling Vine](Trembling_Vine.md)
 - [Walking the Path](Walking_the_Path.md)
-- [Withered Imp](Withered_Imp.md)
-- [Zindiq](Zindiq.md)
